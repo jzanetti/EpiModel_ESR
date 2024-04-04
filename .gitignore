@@ -1,0 +1,4 @@
+etc/test_data
+*.parquet
+*.pyc
+log
