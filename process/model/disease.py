@@ -5,7 +5,7 @@ from random import uniform as random_uniform
 from mesa import Agent
 from numpy.random import choice as numpy_choice
 
-from process.model import CLINICAL_PARAMS
+from process import CLINICAL_PARAMS, MEASURES
 from process.model.weight import cal_infectiousness_profile
 from process.utils import calculate_disease_days
 
@@ -61,15 +61,6 @@ class Agents(Agent):
                     CLINICAL_PARAMS[f"infection_to_{days_type}_days"], days_buffer
                 ),
             )
-            """
-            setattr(
-                self,
-                f"infection_to_{days_type}_days",
-                calculate_disease_days(
-                    locals()[f"infection_to_{days_type}_days"], days_buffer
-                ),
-            )
-            """
 
         self.infectiousness_profile = cal_infectiousness_profile(
             start_t=self.infection_to_infectiousness_days["start"],
@@ -104,12 +95,19 @@ class Agents(Agent):
             # Step 3: Check if the agent has symptoms,
             #          if so there is a chance he/she may stay at home,
             # ---------------------------------------------
-            if (
-                delta_t > self.infection_to_symptom_days["start"]
-                or delta_t < self.infection_to_symptom_days["end"]
-            ):
-                if numpy_choice([True, False], p=[0.75, 0.25]):
-                    return
+            if MEASURES["stay_at_home_if_symptom"]["enable"]:
+                if (
+                    delta_t > self.infection_to_symptom_days["start"]
+                    or delta_t < self.infection_to_symptom_days["end"]
+                ):
+                    if numpy_choice(
+                        [True, False],
+                        p=[
+                            MEASURES["stay_at_home_if_symptom"]["percentage"],
+                            1.0 - MEASURES["stay_at_home_if_symptom"]["percentage"],
+                        ],
+                    ):
+                        return
 
             # --------------------------------------------
             # Step 4: Creating infectiousness profile

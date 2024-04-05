@@ -1,9 +1,11 @@
 from numpy import linspace as numpy_linspace
 from scipy.stats import gamma as scipy_gamma
 
+from process import CLINICAL_PARAMS
+
 
 def cal_reproduction_weight(
-    reproduction_rate: float = 12,
+    reproduction_rate: float = CLINICAL_PARAMS["reproduction_rate"],
     contact_weight: dict = {
         "school": 0.3,
         "household": 1.0,

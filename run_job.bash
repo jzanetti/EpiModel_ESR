@@ -16,6 +16,6 @@ for ((i=1; i<=num_runs; i++))
 do
    echo "Running iteration $i"
    # echo "nohup python cli/run.py --workdir ${workdir_base}_$i --syspop_base_path ${syspop_base_path} --syspop_diary_path ${syspop_diary_path} --syspop_address_path ${syspop_address_path} --dhb_list ${dhb_list} >& $workdir_base/log_$i &"
-   nohup python cli/run.py --workdir ${workdir_base}_$i --syspop_base_path ${syspop_base_path} --syspop_diary_path ${syspop_diary_path} --syspop_address_path ${syspop_address_path} --dhb_list ${dhb_list} >& $workdir_base/log.$i &
+   nohup python cli/run.py --workdir ${workdir_base}/ens_$i --syspop_base_path ${syspop_base_path} --syspop_diary_path ${syspop_diary_path} --syspop_address_path ${syspop_address_path} --dhb_list ${dhb_list} --sample_ratio 0.15 >& $workdir_base/log.$i &
 done
 

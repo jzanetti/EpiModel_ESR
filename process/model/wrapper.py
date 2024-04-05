@@ -1,6 +1,7 @@
 from logging import getLogger
 from random import sample as random_sample
 
+from dill import dump as dill_dump
 from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
@@ -90,3 +91,7 @@ class Epimodel_esr(Model):
         self.datacollector.collect(self)
         self.timestep = timestep
         self.schedule.step()
+
+    def save(self, model_path: str):
+        with open(model_path, "wb") as fid:
+            dill_dump(self, fid)

@@ -5,14 +5,43 @@ from pickle import dump as pickle_dump
 from pickle import load as pickle_load
 from random import uniform as random_uniform
 
+from dill import load as dill_load
 from pandas import DataFrame
 from pandas import concat as pandas_concat
 from pandas import merge as pandas_merge
+from pandas import read_parquet
 from pandas import read_parquet as pandas_read_parquet
+from pandas import to_datetime, to_numeric
 
 from process import SA2_DATA_PATH
 
 logger = getLogger()
+
+
+def read_obs(obs_path: str, DHB_list: list):
+
+    def _week_to_date(year, week):
+        return to_datetime(f"{year} {week} 1", format="%Y %U %w")
+
+    obs = pandas_read_parquet(obs_path)
+    obs = obs[obs["Region"].isin(DHB_list)]
+    obs = obs.melt(id_vars=["Region"], var_name="Week", value_name="Cases")
+    obs["Date"] = obs["Week"].apply(lambda x: _week_to_date(2024, int(x.split("_")[1])))
+    obs["Cases"] = to_numeric(obs["Cases"], errors="coerce")
+    obs.set_index("Date", inplace=True)
+    obs = obs.resample("D").interpolate(method="linear")
+    obs.reset_index(inplace=True)
+    obs = obs[["Date", "Cases"]]
+
+    return obs
+
+
+def open_saved_model(model_path: str):
+
+    with open(model_path, "rb") as f:
+        model = dill_load(f)
+
+    return model
 
 
 def setup_logging(
