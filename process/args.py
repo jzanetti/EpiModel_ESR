@@ -11,7 +11,7 @@ def obtain_args(parser):
     parser.add_argument(
         "--syspop_base_path",
         type=str,
-        required=True,
+        required=False,
         help="Synthetic population (base) data path",
     )
 
@@ -28,12 +28,20 @@ def obtain_args(parser):
         required=False,
         help="Synthetic population (address) data path",
     )
+
+    parser.add_argument(
+        "--syspop_healthcare_path",
+        type=str,
+        required=False,
+        help="Synthetic population (healthcare) data path",
+    )
+
     parser.add_argument(
         "--dhb_list",
         nargs="+",
         help="New Zealand DHB list",
         required=False,
-        default=None,
+        default=[],
     )
 
     parser.add_argument(
@@ -42,6 +50,14 @@ def obtain_args(parser):
         help="The percentage of interactions to be used",
         required=False,
         default=0.1,
+    )
+
+    parser.add_argument(
+        "--seed_infection",
+        type=int,
+        help="The number of people being infected at the beginining",
+        required=False,
+        default=50,
     )
 
     parser.add_argument("--overwrite_model", action="store_true")

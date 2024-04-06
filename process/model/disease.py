@@ -1,4 +1,5 @@
 from enum import IntEnum
+from logging import getLogger
 from random import sample as random_sample
 from random import uniform as random_uniform
 
@@ -9,6 +10,8 @@ from process import CLINICAL_PARAMS, MEASURES
 from process.model.weight import cal_infectiousness_profile
 from process.utils import calculate_disease_days
 
+logger = getLogger()
+
 
 class State(IntEnum):
     SUSCEPTIBLE = 0
@@ -17,7 +20,9 @@ class State(IntEnum):
 
 
 class Vaccine(IntEnum):
-    YES = 1
+    NATURE = 3
+    FULL = 2
+    PARTIAL = 1
     NO = 0
 
 
@@ -28,6 +33,7 @@ class Agents(Agent):
         model,
         pos,
         loc_type,
+        imms_status,
         infection_to_incubation_days: list = [0, 10],
         infection_to_infectiousness_days: list = [10, 21],
         infection_to_symptom_days: list = [11, 20],
@@ -41,8 +47,19 @@ class Agents(Agent):
         self.pos = pos
         self.loc_type = loc_type
         self.state = State.SUSCEPTIBLE
-        self.vaccine_status = numpy_choice([Vaccine.YES, Vaccine.NO], p=[0.9, 0.1])
-        self.vaccine_efficiency = CLINICAL_PARAMS["vaccine_efficiency"]
+        if imms_status == "nature_imms":
+            self.vaccine_status = Vaccine.NATURE
+        if imms_status == "fully_imms":
+            self.vaccine_status = Vaccine.FULL
+        elif imms_status == "partial_imms":
+            self.vaccine_status = Vaccine.PARTIAL
+        elif imms_status == "no_imms":
+            self.vaccine_status = Vaccine.NO
+
+        self.vaccine_efficiency_full = CLINICAL_PARAMS["vaccine_efficiency"]["full"]
+        self.vaccine_efficiency_partial = CLINICAL_PARAMS["vaccine_efficiency"][
+            "partial"
+        ]
         self.infection_time = None
         self.symptomatic_time = None
         self.recovery_time = None
@@ -135,8 +152,9 @@ class Agents(Agent):
             # --------------------------------------------
             # Step 5: Infecting people if they are not vaccinated
             # ---------------------------------------------
+            n_infected = 0
             for neighbor in neighbors:
-                # if neighbor.unique_id == 496996:
+
                 if neighbor.unique_id == self.unique_id:
                     continue
 
@@ -144,10 +162,26 @@ class Agents(Agent):
                     if neighbor.vaccine_status == Vaccine.NO:
                         neighbor.state = State.INFECTED
                         neighbor.infection_time = self.model.timestep
-                    else:
+                        n_infected += 1
+                    elif neighbor.vaccine_status == Vaccine.NATURE:
+                        continue
+                    elif neighbor.vaccine_status in [Vaccine.FULL, Vaccine.PARTIAL]:
+                        if neighbor.vaccine_status == Vaccine.FULL:
+                            proc_vaccine_efficiency = self.vaccine_efficiency_full
+                        else:
+                            proc_vaccine_efficiency = self.vaccine_efficiency_partial
+
                         if numpy_choice(
                             [True, False],
-                            p=[1.0 - self.vaccine_efficiency, self.vaccine_efficiency],
+                            p=[
+                                1.0 - proc_vaccine_efficiency,
+                                proc_vaccine_efficiency,
+                            ],
                         ):
                             self.state = State.INFECTED
                             self.infection_time = self.model.timestep
+                            n_infected += 1
+            if n_infected > 0:
+                logger.info(
+                    f"    * {self.unique_id}: newly infected person: {n_infected}"
+                )

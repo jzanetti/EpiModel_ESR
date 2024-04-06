@@ -13,9 +13,42 @@ from pandas import read_parquet
 from pandas import read_parquet as pandas_read_parquet
 from pandas import to_datetime, to_numeric
 
-from process import SA2_DATA_PATH
+from process import SA2_DATA_PATH, TOTAL_TIMESTEPS
 
 logger = getLogger()
+
+
+def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataFrame:
+    """MESA output will give total infected cases at each time step,
+    however, the ESR data only gives the newly reported cases for each week.
+    Here we extract the newly infected cases (e.g., target_status == 1)from MESA output
+
+    Args:
+        all_cases (DataFrame): _description_
+        target_status (int, optional): _description_. Defaults to 1.
+    """
+    all_cases = all_cases.reset_index()
+    newly_infected_ids = []
+    all_cases["State_new"] = 0
+    for ts in range(TOTAL_TIMESTEPS):
+        # Filter the DataFrame for the current timestep and where State transitions from 0 to 1
+        for target_state in state_list:
+            if target_state == 0:
+                continue
+            newly_infected = all_cases[
+                (all_cases["Step"] == ts) & (all_cases["State"] == target_state)
+            ][["Step", "AgentID", "State"]]
+            newly_infected = newly_infected[
+                ~newly_infected["AgentID"].isin(newly_infected_ids)
+            ]
+            newly_infected_ids.extend(list(newly_infected["AgentID"].values))
+
+            newly_infected = newly_infected.rename(columns={"State": "State_new"})
+            all_cases.loc[newly_infected.index, "State_new"] = newly_infected[
+                "State_new"
+            ]
+
+    return all_cases
 
 
 def read_obs(obs_path: str, DHB_list: list):
@@ -98,6 +131,7 @@ def read_syspop_data(
     syspop_base_path: str,
     syspop_diary_path: str,
     syspop_address_path: str,
+    syspop_healthcare_path: str,
     dhb_list: list or None = None,
     sample_p: float or None = 0.01,
     sample_seed: int or None = None,
@@ -120,6 +154,7 @@ def read_syspop_data(
     logger.info("Start processing input ... ")
     syspop_base = pandas_read_parquet(syspop_base_path)
     syspop_diary = pandas_read_parquet(syspop_diary_path)
+    syspop_healthcare = pandas_read_parquet(syspop_healthcare_path)
     syspop_address = pandas_read_parquet(syspop_address_path)
     syspop_address = syspop_address[["name", "latitude", "longitude"]]
     syspop_address = syspop_address.rename(columns={"name": "location"})
@@ -139,6 +174,10 @@ def read_syspop_data(
         syspop_diary = syspop_diary[
             syspop_diary["id"].isin(syspop_base.id)
         ].reset_index()[["id", "type", "location"]]
+
+        syspop_healthcare = syspop_healthcare[
+            syspop_healthcare["id"].isin(syspop_base.id)
+        ].reset_index()[["id", "mmr"]]
 
     if sample_p is not None:
         sample_size = int(sample_p * len(syspop_diary))
@@ -161,4 +200,5 @@ def read_syspop_data(
         "syspop_base": syspop_base,
         "syspop_diary": syspop_diary,
         "syspop_address": syspop_address,
+        "syspop_healthcare": syspop_healthcare,
     }
