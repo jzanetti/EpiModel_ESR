@@ -1,6 +1,21 @@
 SA2_DATA_PATH = "etc/dhb_and_sa2.parquet"
 SAVED_MODEL_PATH = "{workdir}/model.dill"
 
+DIARY_TYPES = [
+    "household",
+    "gym",
+    "company",
+    "school",
+    "cafe",
+    "supermarket",
+    "kindergarten",
+    "department_store",
+    "fast_food",
+    "wholesale",
+    "restaurant",
+    "pub",
+]
+
 # https://bpac.org.nz/2021/mmr.aspx
 CLINICAL_PARAMS = {
     "reproduction_rate": 12.0,
@@ -10,6 +25,9 @@ CLINICAL_PARAMS = {
     "infection_to_recovered_days": 21,
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
+
+OUTDOOR_INFECT_SCALER = 1.0
+INFECTED_NO_REPORT_RATIO = 1.0 - 1.0 / 7
 
 MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.8}}
 

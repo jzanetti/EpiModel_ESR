@@ -2,10 +2,10 @@
 
 num_runs=10
 seed_infection=20
-region_name=auckland
-dhb_name=Counties_Manukau
+region_name=canterbury
+dhb_name=Canterbury
 
-workdir_base=/tmp/epimodel_esr_v2.0/$dhb_name
+workdir_base=/tmp/epimodel_esr_v3.0/$dhb_name
 syspop_base_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_base.parquet
 syspop_diary_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_diaries.parquet
 syspop_address_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_location.parquet

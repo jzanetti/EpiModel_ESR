@@ -1,4 +1,5 @@
 from logging import getLogger
+from os.path import exists
 from random import sample as random_sample
 
 from dill import dump as dill_dump
@@ -8,11 +9,59 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from pandas import DataFrame
 
+from process import SAVED_MODEL_PATH
 from process.model.disease import Agents, State
 from process.model.weight import cal_reproduction_weight
-from process.utils import create_newly_increased_case
+from process.utils import (
+    create_newly_increased_case,
+    open_saved_model,
+    read_syspop_data,
+)
 
 logger = getLogger()
+
+
+def init_model(
+    workdir: str,
+    syspop_base_path: str or None,
+    syspop_diary_path: str or None,
+    syspop_address_path: str or None,
+    syspop_healthcare_path: str or None,
+    dhb_list: list or None,
+    sample_ratio: float or None,
+    overwrite_model: bool,
+):
+    """Initialize the model
+
+    Args:
+        workdir (str): Working directory
+        syspop_base_path (strorNone): Synthetic population (base) data path
+        syspop_diary_path (strorNone): Synthetic population (diary) data path
+        syspop_address_path (strorNone): Synthetic population (address) data path
+        dhb_list (listorNone): DHB list to be selected from
+        sample_ratio (floatorNone): Interaction sample percentage
+        overwrite_model (bool): If previous model is presented, we will rewrite it
+
+    Returns:
+        _type_: _description_
+    """
+    saved_model_path = SAVED_MODEL_PATH.format(workdir=workdir)
+
+    if not exists(saved_model_path) or overwrite_model:
+        data = read_syspop_data(
+            syspop_base_path,
+            syspop_diary_path,
+            syspop_address_path,
+            syspop_healthcare_path,
+            sample_p=sample_ratio,
+            dhb_list=dhb_list,
+        )
+        model = Epimodel_esr(data)
+        model.save(saved_model_path)
+    else:
+        model = open_saved_model(saved_model_path)
+
+    return model
 
 
 class Epimodel_esr(Model):
@@ -36,59 +85,60 @@ class Epimodel_esr(Model):
 
         for i, person_id in enumerate(unique_ids):
 
-            proc_diary_location = syspop_diary[
-                syspop_diary.id == person_id
-            ].location.values[0]
-
-            # if len(proc_diary_location) > 1:
-            #    raise Exception(
-            #        f"Found multiple diaries for one person at {person_id} ..."
-            #    )
-            # proc_diary_location = proc_diary_location[0]
-
-            proc_address = syspop_address[
-                syspop_address.location == proc_diary_location
-            ].drop_duplicates()
-
-            if len(proc_address) == 0:
-                continue
-
-            if i % 500 == 0.0:
-                logger.info(
-                    f"Creating agents: {round(i/float(total_ids) * 100.0, 3)} %"
-                )
-
-            proc_lat = proc_address.latitude.values
-            proc_lon = proc_address.longitude.values
-            proc_imms = syspop_healthcare[
-                syspop_healthcare.id == int(person_id.split("_")[0])
-            ]["mmr"].values
-            proc_type = syspop_diary[syspop_diary.id == person_id].type.values
-
-            """
-            if (
-                len(proc_lat) > 1
-                or len(proc_lon) > 1
-                or len(proc_imms) > 1
-                or len(proc_type) > 1
-            ):
-                raise Exception(
-                    "Found same person (id_type) presents in multiple places ..."
-                )
-            """
-            proc_person = Agents(
-                person_id,
-                self,
-                (
-                    proc_lat[0],
-                    proc_lon[0],
-                ),
-                proc_type[0],
-                proc_imms[0],
+            proc_diary_locations = list(
+                syspop_diary[syspop_diary.id == person_id].location.values
             )
 
-            self.schedule.add(proc_person)
-            self.grid.place_agent(proc_person, proc_person.pos)
+            for proc_diary_location in proc_diary_locations:
+
+                if proc_diary_location is None:
+                    continue
+
+                proc_address = syspop_address[
+                    syspop_address.location == proc_diary_location
+                ].drop_duplicates()
+
+                if len(proc_address) == 0:
+                    continue
+
+                if i % 500 == 0.0:
+                    logger.info(
+                        f"Creating agents: {round(i/float(total_ids) * 100.0, 3)} %"
+                    )
+
+                proc_lat = proc_address.latitude.values
+                proc_lon = proc_address.longitude.values
+                proc_imms = syspop_healthcare[
+                    syspop_healthcare.id == int(person_id.split("_")[0])
+                ]["mmr"].values
+                proc_type = syspop_diary[
+                    (syspop_diary.id == person_id)
+                    & (syspop_diary.location == proc_diary_location)
+                ].type.values
+
+                if (
+                    len(proc_lat) > 1
+                    or len(proc_lon) > 1
+                    or len(proc_imms) > 1
+                    or len(proc_type) > 1
+                ):
+                    raise Exception(
+                        "Found same person (id_type) presents in multiple places ..."
+                    )
+
+                proc_person = Agents(
+                    person_id,
+                    self,
+                    (
+                        proc_lat[0],
+                        proc_lon[0],
+                    ),
+                    proc_type[0],
+                    proc_imms[0],
+                )
+
+                self.schedule.add(proc_person)
+                self.grid.place_agent(proc_person, proc_person.pos)
 
         self.reproduction_weight = cal_reproduction_weight()
 

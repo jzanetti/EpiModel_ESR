@@ -5,4 +5,4 @@ install_env:
 	# $(CONDA) activate epimodel_esr & pip install -U -e git+https://github.com/projectmesa/mesa@main#egg=mesa
 
 run_job:
-	./run_job.bash >& log &
+	./run_job.bash

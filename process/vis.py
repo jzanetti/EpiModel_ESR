@@ -18,6 +18,7 @@ from pandas import DataFrame
 
 from process import VIS_COLOR
 from process.model.disease import State
+from process.utils import daily2weekly_data
 
 
 def plot_infectiousness_profile(
@@ -50,6 +51,7 @@ def plot_grid(
     data_to_plot: DataFrame or list,
     state_list: list,
     plot_increment: bool = False,
+    plot_weekly: bool = False,
     obs: None or DataFrame = None,
 ):
     state_key = "State"
@@ -77,17 +79,25 @@ def plot_grid(
             if state not in state_list:
                 continue
 
+            proc_grouped_data = proc_grouped[state]
+            proc_grouped_index = proc_grouped.index
+
+            if plot_weekly:
+                proc_grouped_data, proc_grouped_index = daily2weekly_data(
+                    proc_grouped_data
+                )
+
             if i == 0:
                 plot(
-                    proc_grouped.index,
-                    proc_grouped[state],
+                    proc_grouped_index,
+                    proc_grouped_data,
                     color=VIS_COLOR[state],
                     label=f"{State(state).name}",
                 )
             else:
                 plot(
-                    proc_grouped.index,
-                    proc_grouped[state],
+                    proc_grouped_index,
+                    proc_grouped_data,
                     color=VIS_COLOR[state],
                 )
 

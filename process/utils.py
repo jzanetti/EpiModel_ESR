@@ -8,14 +8,28 @@ from random import uniform as random_uniform
 from dill import load as dill_load
 from pandas import DataFrame
 from pandas import concat as pandas_concat
+from pandas import date_range
 from pandas import merge as pandas_merge
 from pandas import read_parquet
 from pandas import read_parquet as pandas_read_parquet
 from pandas import to_datetime, to_numeric
 
-from process import SA2_DATA_PATH, TOTAL_TIMESTEPS
+from process import DIARY_TYPES, SA2_DATA_PATH, TOTAL_TIMESTEPS
 
 logger = getLogger()
+
+
+def daily2weekly_data(proc_grouped_data: DataFrame):
+    proc_grouped_data = proc_grouped_data.reset_index()[1:]
+    proc_grouped_data["Date"] = date_range(
+        start="1/1/2020", periods=len(proc_grouped_data), freq="D"
+    )
+    proc_grouped_data.set_index("Date", inplace=True)
+    proc_grouped_data = proc_grouped_data[1].resample("W").sum()
+    proc_grouped_data = proc_grouped_data.reset_index()
+    proc_grouped_index = proc_grouped_data.index
+
+    return proc_grouped_data[1].values, proc_grouped_index
 
 
 def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataFrame:
@@ -158,6 +172,8 @@ def read_syspop_data(
     syspop_address = pandas_read_parquet(syspop_address_path)
     syspop_address = syspop_address[["name", "latitude", "longitude"]]
     syspop_address = syspop_address.rename(columns={"name": "location"})
+
+    syspop_diary = syspop_diary[syspop_diary["type"].isin(DIARY_TYPES)]
 
     syspop_diary = (
         syspop_diary[["id", "type", "location"]]

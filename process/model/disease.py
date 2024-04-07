@@ -6,7 +6,12 @@ from random import uniform as random_uniform
 from mesa import Agent
 from numpy.random import choice as numpy_choice
 
-from process import CLINICAL_PARAMS, MEASURES
+from process import (
+    CLINICAL_PARAMS,
+    INFECTED_NO_REPORT_RATIO,
+    MEASURES,
+    OUTDOOR_INFECT_SCALER,
+)
 from process.model.weight import cal_infectiousness_profile
 from process.utils import calculate_disease_days
 
@@ -17,6 +22,7 @@ class State(IntEnum):
     SUSCEPTIBLE = 0
     INFECTED = 1
     RECOVERED = 2
+    INFECTED_NO_REPORT = 3
 
 
 class Vaccine(IntEnum):
@@ -87,7 +93,7 @@ class Agents(Agent):
         )
 
     def step(self):
-        if self.state == State.INFECTED:
+        if self.state in [State.INFECTED, State.INFECTED_NO_REPORT]:
 
             delta_t = self.model.timestep - self.infection_time
 
@@ -152,19 +158,38 @@ class Agents(Agent):
             # --------------------------------------------
             # Step 5: Infecting people if they are not vaccinated
             # ---------------------------------------------
-            n_infected = 0
+            infected_neighbors = []
             for neighbor in neighbors:
 
                 if neighbor.unique_id == self.unique_id:
                     continue
 
+                # 5.1: reduce the contact chance if people is in outdoor/park etc.
+                if self.loc_type in ["outdoor", "park"]:
+                    if numpy_choice(
+                        [True, False],
+                        p=[
+                            1.0 - OUTDOOR_INFECT_SCALER,
+                            OUTDOOR_INFECT_SCALER,
+                        ],
+                    ):
+                        continue
+
                 if neighbor.state == State.SUSCEPTIBLE:
                     if neighbor.vaccine_status == Vaccine.NO:
-                        neighbor.state = State.INFECTED
+
+                        if numpy_choice(
+                            [True, False],
+                            p=[
+                                INFECTED_NO_REPORT_RATIO,
+                                1.0 - INFECTED_NO_REPORT_RATIO,
+                            ],
+                        ):
+                            neighbor.state = State.INFECTED_NO_REPORT
+                        else:
+                            neighbor.state = State.INFECTED
                         neighbor.infection_time = self.model.timestep
-                        n_infected += 1
-                    elif neighbor.vaccine_status == Vaccine.NATURE:
-                        continue
+                        infected_neighbors.append(neighbor)
                     elif neighbor.vaccine_status in [Vaccine.FULL, Vaccine.PARTIAL]:
                         if neighbor.vaccine_status == Vaccine.FULL:
                             proc_vaccine_efficiency = self.vaccine_efficiency_full
@@ -178,10 +203,23 @@ class Agents(Agent):
                                 proc_vaccine_efficiency,
                             ],
                         ):
-                            self.state = State.INFECTED
-                            self.infection_time = self.model.timestep
-                            n_infected += 1
-            if n_infected > 0:
+
+                            if numpy_choice(
+                                [True, False],
+                                p=[
+                                    INFECTED_NO_REPORT_RATIO,
+                                    1.0 - INFECTED_NO_REPORT_RATIO,
+                                ],
+                            ):
+                                neighbor.state = State.INFECTED_NO_REPORT
+                            else:
+                                neighbor.state = State.INFECTED
+                            neighbor.infection_time = self.model.timestep
+                            infected_neighbors.append(neighbor)
+                    elif neighbor.vaccine_status == Vaccine.NATURE:
+                        continue
+
+            if len(infected_neighbors) > 0:
                 logger.info(
-                    f"    * {self.unique_id}: newly infected person: {n_infected}"
+                    f"    * {self.loc_type}: newly infected person: {len(infected_neighbors)}"
                 )
