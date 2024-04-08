@@ -77,13 +77,7 @@ def run_epimodel_esr(
 
         logger.info("Plotting model outputs ...")
 
-    plot_grid(
-        workdir,
-        all_model_outputs,
-        state_list=[1],
-        plot_increment=True,
-        plot_weekly=True,
-    )
+    plot_grid(workdir, all_model_outputs, state_list=[1], plot_increment=True)
     plot_infectiousness_profile(workdir, model.agents)
 
     logger.info("Job finished")

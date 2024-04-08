@@ -1,19 +1,24 @@
 from os.path import join
 from random import sample as random_sample
 
+from matplotlib.cm import ScalarMappable, viridis
+from matplotlib.colors import BoundaryNorm, ListedColormap
 from matplotlib.pyplot import (
     close,
     figure,
+    fill_between,
     grid,
     legend,
     plot,
     savefig,
+    subplots,
     tight_layout,
     title,
     xlabel,
     ylabel,
 )
 from mesa.agent import AgentSet as mesa_agentset
+from numpy import arange, array, linspace, percentile
 from pandas import DataFrame
 
 from process import VIS_COLOR
@@ -46,14 +51,9 @@ def plot_infectiousness_profile(
     close()
 
 
-def plot_grid(
-    workdir: str,
-    data_to_plot: DataFrame or list,
-    state_list: list,
-    plot_increment: bool = False,
-    plot_weekly: bool = False,
-    obs: None or DataFrame = None,
-    filename: str = "test.png",
+def vis_data_transformer(
+    data_to_plot: DataFrame,
+    plot_increment: bool,
 ):
     state_key = "State"
     if plot_increment:
@@ -71,42 +71,78 @@ def plot_grid(
                 .size()
                 .unstack(fill_value=0)
             )
+    return grouped
 
-    # Plot the result
-    figure(figsize=(10, 6))
 
+def plot_grid(
+    workdir: str,
+    data_to_plot: DataFrame or list,
+    state_list: list,
+    plot_increment: bool = False,
+    obs: None or DataFrame = None,
+    filename: str = "test.png",
+    xlabel_str: str = "Step",
+    ylabel_str: str = "Total State",
+    title_str: str = "Time series of total state value against step",
+    plot_percentile_flag: bool = False,
+):
+    grouped = vis_data_transformer(data_to_plot, plot_increment)
+
+    output = {}
     for i, proc_grouped in enumerate(grouped):
         for state in proc_grouped.columns:
             if state not in state_list:
                 continue
 
             proc_grouped_data = proc_grouped[state]
-            proc_grouped_index = proc_grouped.index
 
-            if plot_weekly:
-                proc_grouped_data, proc_grouped_index = daily2weekly_data(
-                    proc_grouped_data
-                )
+            proc_grouped_data, proc_grouped_index = daily2weekly_data(proc_grouped_data)
 
+            if state not in output:
+                output[state] = []
+
+            output[state].append(proc_grouped_data)
+
+    if plot_percentile_flag:
+        x = array(list(zip(*output[state]))).transpose()
+
+        percentiles = {50: "r", 75: "g", 90: "b"}
+
+        # Calculate percentiles
+        data_percentiles = percentile(x, list(percentiles.keys()), axis=0)
+
+        for i, percentile_key in enumerate(percentiles):
+            plot(
+                range(data_percentiles.shape[1]),
+                data_percentiles[i, :],
+                color=percentiles[percentile_key],
+                label=percentile_key,
+            )
+
+    for state in output:
+        for i, proc_grouped_data in enumerate(output[state]):
             if i == 0:
                 plot(
                     proc_grouped_index,
                     proc_grouped_data,
                     color=VIS_COLOR[state],
                     label=f"{State(state).name}",
+                    linewidth=0.5,
                 )
             else:
                 plot(
                     proc_grouped_index,
                     proc_grouped_data,
                     color=VIS_COLOR[state],
+                    linewidth=0.5,
                 )
 
     if obs is not None:
         plot(obs["Cases"].values[-22:], label="obs")
-    xlabel("Step")
-    ylabel("Total State")
-    title("Time series of total state value against step")
+
+    xlabel(xlabel_str)
+    ylabel(ylabel_str)
+    title(title_str)
     grid(True)
     legend()
     tight_layout()
