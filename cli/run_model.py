@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from os import makedirs
 from os.path import exists, join
 
-from process import TOTAL_TIMESTEPS
+from process import ENS_NUMBER, TOTAL_TIMESTEPS
 from process.args import obtain_args
 from process.model.wrapper import init_model
 from process.utils import setup_logging
@@ -42,32 +42,45 @@ def run_epimodel_esr(
         makedirs(workdir)
     setup_logging(workdir=workdir)
 
-    logger.info("Initialize the EpiModel_ESR ...")
-    model = init_model(
-        workdir,
-        syspop_base_path,
-        syspop_diary_path,
-        syspop_address_path,
-        syspop_healthcare_path,
-        dhb_list,
-        sample_ratio,
-        overwrite_model,
-    )
-    logger.info("Initial infection ...")
-    model.initial_infection(seed_infection, cleanup_agents=False)
+    all_model_outputs = []
+    for ens_i in range(ENS_NUMBER):
+        logger.info(f"Initialize the EpiModel_ESR {ens_i}...")
 
-    logger.info("Running the model ...")
-    for i in range(TOTAL_TIMESTEPS):
-        logger.info(f" -- Step {i} ...")
-        model.step(i)
+        if ens_i > 0:
+            overwrite_model = False
 
-    logger.info("Saving model outputs ...")
-    model.postprocessing()
-    model.output.to_parquet(join(workdir, "output.parquet"))
+        model = init_model(
+            workdir,
+            syspop_base_path,
+            syspop_diary_path,
+            syspop_address_path,
+            syspop_healthcare_path,
+            dhb_list,
+            sample_ratio,
+            overwrite_model,
+        )
 
-    logger.info("Plotting model outputs ...")
+        logger.info(f"Initial infection {ens_i}...")
+        model.initial_infection(seed_infection, cleanup_agents=False, infection_time=0)
+
+        logger.info(f"Running the model {ens_i} ...")
+        for i in range(TOTAL_TIMESTEPS):
+            logger.info(f" -- Step {i} ...")
+            model.step(i)
+
+        logger.info(f"Saving model outputs {ens_i} ...")
+        model.postprocessing()
+        model.output.to_parquet(join(workdir, f"output_ens_{ens_i}.parquet"))
+        all_model_outputs.append(model.output)
+
+        logger.info("Plotting model outputs ...")
+
     plot_grid(
-        workdir, model.output, state_list=[1], plot_increment=True, plot_weekly=True
+        workdir,
+        all_model_outputs,
+        state_list=[1],
+        plot_increment=True,
+        plot_weekly=True,
     )
     plot_infectiousness_profile(workdir, model.agents)
 
@@ -79,23 +92,22 @@ if __name__ == "__main__":
     parser = obtain_args(parser)
 
     args = parser.parse_args()
-
     """
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/test/wellington",
+            "/tmp/test/auckland",
             "--syspop_base_path",
-            "etc/test_data/wellington/syspop_base.parquet",
+            "etc/test_data/auckland/syspop_base.parquet",
             "--syspop_diary_path",
-            "etc/test_data/wellington/syspop_diaries.parquet",
+            "etc/test_data/auckland/syspop_diaries.parquet",
             "--syspop_address_path",
-            "etc/test_data/wellington/syspop_location.parquet",
+            "etc/test_data/auckland/syspop_location.parquet",
             "--syspop_healthcare_path",
-            "etc/test_data/wellington/syspop_healthcare.parquet",
+            "etc/test_data/auckland/syspop_healthcare.parquet",
             "--dhb_list",
-            "Hutt_Valley",
-            # "Counties Manukau",
+            # "Hutt_Valley",
+            "Counties Manukau",
             "--sample_ratio",
             "0.15",
             "--seed_infection",
@@ -104,13 +116,14 @@ if __name__ == "__main__":
         ]
     )
     """
+
     """
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/epimodel_esr_v2.0/Counties_Manukau/ens_10/",
+            "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_10/",
             "--seed_infection",
-            "20",
+            "30",
         ]
     )
     """

@@ -145,7 +145,7 @@ class Epimodel_esr(Model):
         self.datacollector = DataCollector(agent_reporters={"State": "state"})
 
     def initial_infection(
-        self, initial_n: int, infection_time: int = -7, cleanup_agents: bool = False
+        self, initial_n: int, infection_time: int = 0, cleanup_agents: bool = False
     ):
         person_agents = [
             agent for agent in self.schedule.agents if isinstance(agent, Agents)

@@ -141,6 +141,26 @@ def calculate_disease_days(days: int, buffer: float):
         return random_uniform(days * (1 - buffer), days * (1 + buffer))
 
 
+def sample_syspop_diary_with_all_household(
+    syspop_diary: DataFrame, sample_p: float
+) -> DataFrame:
+    """Sample syspop diary but keep all households
+
+    Args:
+        syspop_diary (DataFrame): Syspop diary dataset
+        sample_p (float): Sample percentage
+
+    Returns:
+        Dataframe: Updated Syspop
+    """
+    type_household_rows = syspop_diary[syspop_diary["type"] == "household"]
+    other_type_rows = syspop_diary[~syspop_diary["type"].isin(["household"])]
+    other_type_selected = other_type_rows.sample(frac=sample_p, replace=False)
+    selected_rows = pandas_concat([type_household_rows, other_type_selected])
+    selected_rows = selected_rows.reset_index()
+    return selected_rows
+
+
 def read_syspop_data(
     syspop_base_path: str,
     syspop_diary_path: str,
@@ -196,9 +216,11 @@ def read_syspop_data(
         ].reset_index()[["id", "mmr"]]
 
     if sample_p is not None:
-        sample_size = int(sample_p * len(syspop_diary))
-        logger.info(f"Selected {sample_size} samples ...")
-        syspop_diary = syspop_diary.sample(sample_size, random_state=sample_seed)
+        # sample_size = int(sample_p * len(syspop_diary))
+        # logger.info(f"Selected {sample_size} samples ...")
+        # syspop_diary = syspop_diary.sample(sample_size, random_state=sample_seed)
+        syspop_diary = sample_syspop_diary_with_all_household(syspop_diary, sample_p)
+        logger.info(f"Selected {len(syspop_diary)} samples ...")
 
     syspop_address = syspop_address[
         syspop_address["location"].isin(syspop_diary.location)

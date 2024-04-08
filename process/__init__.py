@@ -26,11 +26,14 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
-OUTDOOR_INFECT_SCALER = 1.0
-INFECTED_NO_REPORT_RATIO = 1.0 - 1.0 / 7
+ENS_NUMBER = 10
 
-MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.8}}
+INFECTED_NO_REPORT_RATIO = 0.0
+
+MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
 
 TOTAL_TIMESTEPS = 180
 
 VIS_COLOR = {0: "red", 1: "green", 2: "blue"}
+
+DEBUG_FLAG = False

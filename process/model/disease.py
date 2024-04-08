@@ -6,12 +6,7 @@ from random import uniform as random_uniform
 from mesa import Agent
 from numpy.random import choice as numpy_choice
 
-from process import (
-    CLINICAL_PARAMS,
-    INFECTED_NO_REPORT_RATIO,
-    MEASURES,
-    OUTDOOR_INFECT_SCALER,
-)
+from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO, MEASURES
 from process.model.weight import cal_infectiousness_profile
 from process.utils import calculate_disease_days
 
@@ -164,17 +159,6 @@ class Agents(Agent):
                 if neighbor.unique_id == self.unique_id:
                     continue
 
-                # 5.1: reduce the contact chance if people is in outdoor/park etc.
-                if self.loc_type in ["outdoor", "park"]:
-                    if numpy_choice(
-                        [True, False],
-                        p=[
-                            1.0 - OUTDOOR_INFECT_SCALER,
-                            OUTDOOR_INFECT_SCALER,
-                        ],
-                    ):
-                        continue
-
                 if neighbor.state == State.SUSCEPTIBLE:
                     if neighbor.vaccine_status == Vaccine.NO:
 
@@ -219,7 +203,7 @@ class Agents(Agent):
                     elif neighbor.vaccine_status == Vaccine.NATURE:
                         continue
 
-            if len(infected_neighbors) > 0:
+            if len(infected_neighbors) > 0 and DEBUG_FLAG:
                 logger.info(
                     f"    * {self.loc_type}: newly infected person: {len(infected_neighbors)}"
                 )
