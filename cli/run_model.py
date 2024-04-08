@@ -61,7 +61,9 @@ def run_epimodel_esr(
         )
 
         logger.info(f"Initial infection {ens_i}...")
-        model.initial_infection(seed_infection, cleanup_agents=False, infection_time=0)
+        model.initial_infection(
+            seed_infection, cleanup_agents=False, infection_time=[-10, 0]
+        )
 
         logger.info(f"Running the model {ens_i} ...")
         for i in range(TOTAL_TIMESTEPS):

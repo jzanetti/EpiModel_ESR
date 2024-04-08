@@ -76,7 +76,7 @@ def read_obs(obs_path: str, DHB_list: list):
     obs["Date"] = obs["Week"].apply(lambda x: _week_to_date(2024, int(x.split("_")[1])))
     obs["Cases"] = to_numeric(obs["Cases"], errors="coerce")
     obs.set_index("Date", inplace=True)
-    obs = obs.resample("D").interpolate(method="linear")
+    # obs = obs.resample("D").interpolate(method="linear")
     obs.reset_index(inplace=True)
     obs = obs[["Date", "Cases"]]
 

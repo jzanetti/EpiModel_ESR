@@ -53,6 +53,7 @@ def plot_grid(
     plot_increment: bool = False,
     plot_weekly: bool = False,
     obs: None or DataFrame = None,
+    filename: str = "test.png",
 ):
     state_key = "State"
     if plot_increment:
@@ -102,12 +103,12 @@ def plot_grid(
                 )
 
     if obs is not None:
-        plot(obs["Cases"].values[-180:], label="obs")
+        plot(obs["Cases"].values[-22:], label="obs")
     xlabel("Step")
     ylabel("Total State")
     title("Time series of total state value against step")
     grid(True)
     legend()
     tight_layout()
-    savefig(join(workdir, "test.png"))
+    savefig(join(workdir, filename))
     close()

@@ -1,5 +1,6 @@
 from logging import getLogger
 from os.path import exists
+from random import randint as random_randint
 from random import sample as random_sample
 
 from dill import dump as dill_dump
@@ -145,7 +146,10 @@ class Epimodel_esr(Model):
         self.datacollector = DataCollector(agent_reporters={"State": "state"})
 
     def initial_infection(
-        self, initial_n: int, infection_time: int = 0, cleanup_agents: bool = False
+        self,
+        initial_n: int,
+        infection_time: int or list = 0,
+        cleanup_agents: bool = False,
     ):
         person_agents = [
             agent for agent in self.schedule.agents if isinstance(agent, Agents)
@@ -158,6 +162,8 @@ class Epimodel_esr(Model):
         # Label selected agents as infected
         for agent in random_sample(person_agents, initial_n):
             agent.state = State.INFECTED
+            if isinstance(infection_time, list):
+                infection_time = random_randint(infection_time[0], infection_time[1])
             agent.infection_time = infection_time
 
     def step(self, timestep):
