@@ -25,11 +25,11 @@ def daily2weekly_data(proc_grouped_data: DataFrame):
         start="1/1/2020", periods=len(proc_grouped_data), freq="D"
     )
     proc_grouped_data.set_index("Date", inplace=True)
-    proc_grouped_data = proc_grouped_data[1].resample("W").sum()
+    proc_grouped_data = proc_grouped_data[2].resample("W").sum()
     proc_grouped_data = proc_grouped_data.reset_index()
     proc_grouped_index = proc_grouped_data.index
 
-    return proc_grouped_data[1].values, proc_grouped_index
+    return proc_grouped_data[2].values, proc_grouped_index
 
 
 def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataFrame:

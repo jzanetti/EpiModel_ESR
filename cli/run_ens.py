@@ -26,7 +26,7 @@ for run_id in range(1, 11):
 plot_grid(
     dirname(proc_dir),
     proc_data_list,
-    state_list=[1],
+    state_list=[2],
     obs=obs,
     plot_increment=True,
     filename="test_ens.png",

@@ -85,6 +85,7 @@ def plot_grid(
     ylabel_str: str = "Total State",
     title_str: str = "Time series of total state value against step",
     plot_percentile_flag: bool = False,
+    plot_weekly_data: bool = True,
 ):
     grouped = vis_data_transformer(data_to_plot, plot_increment)
 
@@ -95,8 +96,12 @@ def plot_grid(
                 continue
 
             proc_grouped_data = proc_grouped[state]
+            proc_grouped_index = proc_grouped_data.index
 
-            proc_grouped_data, proc_grouped_index = daily2weekly_data(proc_grouped_data)
+            if plot_weekly_data:
+                proc_grouped_data, proc_grouped_index = daily2weekly_data(
+                    proc_grouped_data
+                )
 
             if state not in output:
                 output[state] = []

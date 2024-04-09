@@ -25,6 +25,7 @@ def run_epimodel_esr(
     dhb_list: list or None,
     sample_ratio: float or None,
     seed_infection: int,
+    infection_time: list,
     overwrite_model: bool,
 ):
     """Run epimodel_ESR
@@ -60,9 +61,11 @@ def run_epimodel_esr(
             overwrite_model,
         )
 
-        logger.info(f"Initial infection {ens_i}...")
+        logger.info(
+            f"Initial infection {ens_i} with infection time of {infection_time}"
+        )
         model.initial_infection(
-            seed_infection, cleanup_agents=False, infection_time=[-10, 0]
+            seed_infection, cleanup_agents=True, infection_time=infection_time
         )
 
         logger.info(f"Running the model {ens_i} ...")
@@ -75,9 +78,14 @@ def run_epimodel_esr(
         model.output.to_parquet(join(workdir, f"output_ens_{ens_i}.parquet"))
         all_model_outputs.append(model.output)
 
-        logger.info("Plotting model outputs ...")
-
-    plot_grid(workdir, all_model_outputs, state_list=[1], plot_increment=True)
+    logger.info("Plotting model outputs ...")
+    plot_grid(
+        workdir,
+        all_model_outputs,
+        state_list=[2],
+        plot_increment=True,
+        plot_weekly_data=True,
+    )
     plot_infectiousness_profile(workdir, model.agents)
 
     logger.info("Job finished")
@@ -119,11 +127,12 @@ if __name__ == "__main__":
             "--workdir",
             "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_10/",
             "--seed_infection",
-            "30",
+            "35",
+            "--infection_time",
+            "[0, 20]",
         ]
     )
     """
-
     run_epimodel_esr(
         args.workdir,
         args.syspop_base_path,
@@ -133,5 +142,6 @@ if __name__ == "__main__":
         [s.replace("_", " ") for s in args.dhb_list],  # e.g., counties_manukau
         float(args.sample_ratio),
         int(args.seed_infection),
+        eval(args.infection_time),
         args.overwrite_model,
     )

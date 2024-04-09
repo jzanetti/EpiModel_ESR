@@ -60,6 +60,18 @@ def obtain_args(parser):
         default=50,
     )
 
-    parser.add_argument("--overwrite_model", action="store_true")
+    parser.add_argument(
+        "--infection_time",
+        type=str,
+        help="Infection time range in the format of '[start, end]'. For example, [0, 50]",
+        required=False,
+        default="[0, 50]",
+    )
+
+    parser.add_argument(
+        "--overwrite_model",
+        action="store_true",
+        help="Overwrite the model (e.g., recreating the person in the model)",
+    )
 
     return parser

@@ -15,9 +15,10 @@ logger = getLogger()
 
 class State(IntEnum):
     SUSCEPTIBLE = 0
-    INFECTED = 1
-    RECOVERED = 2
-    INFECTED_NO_REPORT = 3
+    SEED_INFECTION = 1
+    INFECTED = 2
+    RECOVERED = 3
+    INFECTED_NO_REPORT = 4
 
 
 class Vaccine(IntEnum):
@@ -88,6 +89,11 @@ class Agents(Agent):
         )
 
     def step(self):
+
+        if self.state == State.SEED_INFECTION:
+            if self.model.timestep == self.infection_time:
+                self.state = State.INFECTED
+
         if self.state in [State.INFECTED, State.INFECTED_NO_REPORT]:
 
             delta_t = self.model.timestep - self.infection_time

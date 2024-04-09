@@ -159,17 +159,23 @@ class Epimodel_esr(Model):
                 agent.state = State.SUSCEPTIBLE
                 agent.infection_time = None
 
-        # Label selected agents as infected
-        for agent in random_sample(person_agents, initial_n):
-            agent.state = State.INFECTED
+        sampled_agents = random_sample(person_agents, initial_n)
+
+        for agent in sampled_agents:
+            agent.state = State.SEED_INFECTION
             if isinstance(infection_time, list):
-                infection_time = random_randint(infection_time[0], infection_time[1])
-            agent.infection_time = infection_time
+                proc_infection_time = random_randint(
+                    infection_time[0], infection_time[1]
+                )
+            else:
+                proc_infection_time = infection_time
+            agent.infection_time = proc_infection_time
+        self.initial_infected = sampled_agents
 
     def step(self, timestep):
-        self.datacollector.collect(self)
         self.timestep = timestep
         self.schedule.step()
+        self.datacollector.collect(self)
 
     def save(self, model_path: str):
         with open(model_path, "wb") as fid:
