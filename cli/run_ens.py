@@ -9,8 +9,10 @@ from process.utils import read_obs
 from process.vis import plot_grid
 
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
-base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
-obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
+# base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
+# obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
+base_dir = "/tmp/epimodel_esr_v3.0/Canterbury/ens_{run_id}/"
+obs = read_obs("etc/test_data/measles_cases_2019.parquet", [""])
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Hutt Valley"])
 
 proc_data_list = []
@@ -24,7 +26,7 @@ for run_id in range(1, 11):
         proc_data_list.append(proc_data)
 
 plot_grid(
-    dirname(proc_dir),
+    dirname(dirname(base_dir)),
     proc_data_list,
     state_list=[2],
     obs=obs,
@@ -34,4 +36,5 @@ plot_grid(
     ylabel_str="Simulated / Confirmed Cases",
     title_str="Weekly Infected Cases",
     plot_percentile_flag=True,
+    plot_cfg={"linewidth": 0.25, "linestyle": "--"},
 )

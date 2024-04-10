@@ -15,6 +15,7 @@ from matplotlib.pyplot import (
     tight_layout,
     title,
     xlabel,
+    xticks,
     ylabel,
 )
 from mesa.agent import AgentSet as mesa_agentset
@@ -86,6 +87,7 @@ def plot_grid(
     title_str: str = "Time series of total state value against step",
     plot_percentile_flag: bool = False,
     plot_weekly_data: bool = True,
+    plot_cfg: dict = {"linewidth": 0.5, "linestyle": "-"},
 ):
     grouped = vis_data_transformer(data_to_plot, plot_increment)
 
@@ -132,18 +134,24 @@ def plot_grid(
                     proc_grouped_data,
                     color=VIS_COLOR[state],
                     label=f"{State(state).name}",
-                    linewidth=0.5,
+                    linewidth=plot_cfg["linewidth"],
+                    linestyle=plot_cfg["linestyle"],
                 )
             else:
                 plot(
                     proc_grouped_index,
                     proc_grouped_data,
                     color=VIS_COLOR[state],
-                    linewidth=0.5,
+                    linewidth=plot_cfg["linewidth"],
+                    linestyle=plot_cfg["linestyle"],
                 )
 
     if obs is not None:
         plot(obs["Cases"].values[-22:], label="obs")
+        xtick_labels = (
+            obs["Date"][-22:].dt.strftime("%m-%d").tolist()
+        )  # obs["Date"][-22:].tolist()
+        xticks(range(len(xtick_labels)), xtick_labels, rotation=45)
 
     xlabel(xlabel_str)
     ylabel(ylabel_str)

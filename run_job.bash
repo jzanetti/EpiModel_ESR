@@ -1,10 +1,10 @@
 #!/bin/bash
 
 num_runs=10
-seed_infection=35
+seed_infection=0
 infection_time=[0,20]
-region_name=auckland
-dhb_name=Counties_Manukau
+region_name=gisborne
+dhb_name=Tairawhiti
 
 workdir_base=/tmp/epimodel_esr_v3.0/$dhb_name
 syspop_base_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_base.parquet

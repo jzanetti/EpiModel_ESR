@@ -44,6 +44,7 @@ def run_epimodel_esr(
     setup_logging(workdir=workdir)
 
     all_model_outputs = []
+    # for ens_i in range(2):
     for ens_i in range(ENS_NUMBER):
         logger.info(f"Initialize the EpiModel_ESR {ens_i}...")
 
@@ -96,22 +97,24 @@ if __name__ == "__main__":
     parser = obtain_args(parser)
 
     args = parser.parse_args()
+
     """
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/test/auckland",
+            "/tmp/test/northland",
             "--syspop_base_path",
-            "etc/test_data/auckland/syspop_base.parquet",
+            "etc/test_data/gisborne/syspop_base.parquet",
             "--syspop_diary_path",
-            "etc/test_data/auckland/syspop_diaries.parquet",
+            "etc/test_data/gisborne/syspop_diaries.parquet",
             "--syspop_address_path",
-            "etc/test_data/auckland/syspop_location.parquet",
+            "etc/test_data/gisborne/syspop_location.parquet",
             "--syspop_healthcare_path",
-            "etc/test_data/auckland/syspop_healthcare.parquet",
+            "etc/test_data/gisborne/syspop_healthcare.parquet",
             "--dhb_list",
             # "Hutt_Valley",
-            "Counties Manukau",
+            # "Counties Manukau",
+            "Tairawhiti",
             "--sample_ratio",
             "0.15",
             "--seed_infection",
@@ -125,7 +128,7 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_10/",
+            "/tmp/epimodel_esr_v3.0/Canterbury/ens_10/",
             "--seed_infection",
             "35",
             "--infection_time",
@@ -133,6 +136,7 @@ if __name__ == "__main__":
         ]
     )
     """
+
     run_epimodel_esr(
         args.workdir,
         args.syspop_base_path,
