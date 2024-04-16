@@ -7,8 +7,7 @@ from mesa import Agent
 from numpy.random import choice as numpy_choice
 
 from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO, MEASURES
-from process.model.weight import cal_infectiousness_profile
-from process.utils import calculate_disease_days
+from process.model.utils import cal_infectiousness_profile, calculate_disease_days
 
 logger = getLogger()
 
@@ -93,6 +92,8 @@ class Agents(Agent):
         if self.state == State.SEED_INFECTION:
             if self.model.timestep == self.infection_time:
                 self.state = State.INFECTED
+                if DEBUG_FLAG:
+                    logger.info(f"    * intial infection at {self.model.timestep}")
 
         if self.state in [State.INFECTED, State.INFECTED_NO_REPORT]:
 

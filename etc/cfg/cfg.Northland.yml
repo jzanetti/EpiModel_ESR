@@ -1,0 +1,17 @@
+
+create_model:
+  sample_ratio: 0.15
+  data_path:
+    syspop_base: etc/test_data/Northland/syspop_base.parquet
+    syspop_diary: etc/test_data/Northland/syspop_diaries.parquet
+    syspop_address: etc/test_data/Northland/syspop_location.parquet
+    syspop_healthcare: etc/test_data/Northland/syspop_healthcare.parquet
+    obs: etc/test_data/measles_cases_2019.parquet
+  dhb_list:
+    - Northland
+
+run_sims:
+  seed_infection:
+    - 2: [20240811, 20240820]
+    - 2: [20241001, 20241015]
+  intital_timestep: 20240801

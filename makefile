@@ -6,3 +6,6 @@ install_env:
 
 run_job:
 	./run_job.bash
+
+kill_job:
+	pkill -9 -f "cli/run_model.py"

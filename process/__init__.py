@@ -1,5 +1,5 @@
 SA2_DATA_PATH = "etc/dhb_and_sa2.parquet"
-SAVED_MODEL_PATH = "{workdir}/model.dill"
+SAVED_MODEL_PATH = "{workdir}/model_{id}.dill"
 
 DIARY_TYPES = [
     "household",
@@ -26,7 +26,7 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
-ENS_NUMBER = 10
+ENS_NUMBER = 3
 
 INFECTED_NO_REPORT_RATIO = 0.0
 
@@ -36,4 +36,4 @@ TOTAL_TIMESTEPS = 180
 
 VIS_COLOR = {0: "red", 1: "green", 2: "blue"}
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True

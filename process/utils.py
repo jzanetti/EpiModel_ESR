@@ -6,66 +6,67 @@ from pickle import load as pickle_load
 from random import uniform as random_uniform
 
 from dill import load as dill_load
+from numpy import round as numpy_round
 from pandas import DataFrame
 from pandas import concat as pandas_concat
 from pandas import date_range
+from pandas import isna as pandas_isna
 from pandas import merge as pandas_merge
 from pandas import read_parquet
 from pandas import read_parquet as pandas_read_parquet
 from pandas import to_datetime, to_numeric
+from yaml import safe_load as yaml_safe_load
 
 from process import DIARY_TYPES, SA2_DATA_PATH, TOTAL_TIMESTEPS
 
 logger = getLogger()
 
 
-def daily2weekly_data(proc_grouped_data: DataFrame):
-    proc_grouped_data = proc_grouped_data.reset_index()[1:]
-    proc_grouped_data["Date"] = date_range(
-        start="1/1/2020", periods=len(proc_grouped_data), freq="D"
-    )
-    proc_grouped_data.set_index("Date", inplace=True)
-    proc_grouped_data = proc_grouped_data[2].resample("W").sum()
-    proc_grouped_data = proc_grouped_data.reset_index()
-    proc_grouped_index = proc_grouped_data.index
-
-    return proc_grouped_data[2].values, proc_grouped_index
-
-
-def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataFrame:
-    """MESA output will give total infected cases at each time step,
-    however, the ESR data only gives the newly reported cases for each week.
-    Here we extract the newly infected cases (e.g., target_status == 1)from MESA output
+def weekly2daily_data(weekly_data: DataFrame, target_var: str = "Cases") -> DataFrame:
+    """Covert weekly data (e.g., obs) to daily data
 
     Args:
-        all_cases (DataFrame): _description_
-        target_status (int, optional): _description_. Defaults to 1.
+        weekly_data (DataFrame): _description_
+        target_var (str, optional): _description_. Defaults to "Cases".
+
+    Returns:
+        DataFrame: _description_
     """
-    all_cases = all_cases.reset_index()
-    newly_infected_ids = []
-    all_cases["State_new"] = 0
-    for ts in range(TOTAL_TIMESTEPS):
-        # Filter the DataFrame for the current timestep and where State transitions from 0 to 1
-        for target_state in state_list:
-            if target_state == 0:
-                continue
-            newly_infected = all_cases[
-                (all_cases["Step"] == ts) & (all_cases["State"] == target_state)
-            ][["Step", "AgentID", "State"]]
-            newly_infected = newly_infected[
-                ~newly_infected["AgentID"].isin(newly_infected_ids)
-            ]
-            newly_infected_ids.extend(list(newly_infected["AgentID"].values))
 
-            newly_infected = newly_infected.rename(columns={"State": "State_new"})
-            all_cases.loc[newly_infected.index, "State_new"] = newly_infected[
-                "State_new"
-            ]
+    if weekly_data.index.name != "Date":
+        weekly_data.set_index("Date", inplace=True)
 
-    return all_cases
+    # Resample to daily
+    daily_data = weekly_data.resample("D").ffill()
+
+    # Distribute weekly values evenly across days
+    for week, group in daily_data.groupby(daily_data.index.strftime("%U")):
+
+        weekly_value = weekly_data.loc[
+            weekly_data.index.strftime("%U") == week, target_var
+        ].iloc[0]
+        num_days = len(group)
+        if not pandas_isna(weekly_value):
+            daily_data.loc[daily_data.index.strftime("%U") == week, target_var] = (
+                numpy_round(weekly_value / num_days, 1)
+            )
+    return daily_data
 
 
-def read_obs(obs_path: str, DHB_list: list):
+def daily2weekly_data(data_to_process: DataFrame):
+    return data_to_process.resample("W").sum()
+
+
+def read_obs(
+    obs_path: str, DHB_list: list, resample_flag: bool = True, ref_year: int = 2019
+):
+    """Read observation data
+
+    Args:
+        obs_path (str): _description_
+        DHB_list (list): _description_
+        resample_flag (bool, optional): _description_. Defaults to True.
+    """
 
     def _week_to_date(year, week):
         return to_datetime(f"{year} {week} 1", format="%Y %U %w")
@@ -73,14 +74,23 @@ def read_obs(obs_path: str, DHB_list: list):
     obs = pandas_read_parquet(obs_path)
     obs = obs[obs["Region"].isin(DHB_list)]
     obs = obs.melt(id_vars=["Region"], var_name="Week", value_name="Cases")
-    obs["Date"] = obs["Week"].apply(lambda x: _week_to_date(2024, int(x.split("_")[1])))
+    obs["Date"] = obs["Week"].apply(
+        lambda x: _week_to_date(ref_year, int(x.split("_")[1]))
+    )
     obs["Cases"] = to_numeric(obs["Cases"], errors="coerce")
     obs.set_index("Date", inplace=True)
     # obs = obs.resample("D").interpolate(method="linear")
     obs.reset_index(inplace=True)
     obs = obs[["Date", "Cases"]]
 
-    return obs
+    obs.set_index("Date", inplace=True)
+
+    obs_daily = None
+    if resample_flag:
+        obs = obs.resample("W").sum()
+        obs_daily = weekly2daily_data(obs)
+
+    return {"weekly": obs, "daily": obs_daily}
 
 
 def open_saved_model(model_path: str):
@@ -125,22 +135,6 @@ def get_sa2_from_dhb(dhb_list):
     return list(sa2_to_dhb["SA2"].unique())
 
 
-def calculate_disease_days(days: int, buffer: float):
-    """Create the disease days buffer
-
-    Args:
-        days (int): _description_
-        buffer (float): _description_
-    """
-    if isinstance(days, dict):
-        return {
-            "start": round(days["start"] * (1 - buffer)),
-            "end": round(days["end"] * (1 + buffer)),
-        }
-    else:
-        return random_uniform(days * (1 - buffer), days * (1 + buffer))
-
-
 def sample_syspop_diary_with_all_household(
     syspop_diary: DataFrame, sample_p: float
 ) -> DataFrame:
@@ -166,9 +160,10 @@ def read_syspop_data(
     syspop_diary_path: str,
     syspop_address_path: str,
     syspop_healthcare_path: str,
+    obs_path: str or None,
     dhb_list: list or None = None,
     sample_p: float or None = 0.01,
-    sample_seed: int or None = None,
+    sample_all_hhd_flag: bool = True,
 ) -> DataFrame:
     """Read required input synthetic population data
 
@@ -219,7 +214,12 @@ def read_syspop_data(
         # sample_size = int(sample_p * len(syspop_diary))
         # logger.info(f"Selected {sample_size} samples ...")
         # syspop_diary = syspop_diary.sample(sample_size, random_state=sample_seed)
-        syspop_diary = sample_syspop_diary_with_all_household(syspop_diary, sample_p)
+        if sample_all_hhd_flag:
+            syspop_diary = sample_syspop_diary_with_all_household(
+                syspop_diary, sample_p
+            )
+        else:
+            syspop_diary = syspop_diary.sample(int(sample_p * len(syspop_diary)))
         logger.info(f"Selected {len(syspop_diary)} samples ...")
 
     syspop_address = syspop_address[
@@ -234,9 +234,26 @@ def read_syspop_data(
         columns={"id_type": "id"}
     )
 
+    obs = None
+    if obs_path is not None:
+        obs = read_obs(obs_path, dhb_list)
+
     return {
         "syspop_base": syspop_base,
         "syspop_diary": syspop_diary,
         "syspop_address": syspop_address,
         "syspop_healthcare": syspop_healthcare,
+        "obs": obs,
     }
+
+
+def read_cfg(cfg_path: str, task_name: str) -> dict:
+
+    with open(cfg_path, "r") as file:
+        cfg = yaml_safe_load(file)
+
+    if task_name in ["create_model", "run_vis"]:
+        return cfg["create_model"]
+
+    if task_name == "run_model":
+        return cfg["run_sims"]

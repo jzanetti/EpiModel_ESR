@@ -52,63 +52,47 @@ def plot_infectiousness_profile(
     close()
 
 
-def vis_data_transformer(
-    data_to_plot: DataFrame,
-    plot_increment: bool,
-):
-    state_key = "State"
-    if plot_increment:
-        state_key = "State_new"
-
-    if isinstance(data_to_plot, DataFrame):
-        grouped = [
-            data_to_plot.groupby(["Step", state_key]).size().unstack(fill_value=0)
-        ]
-    else:
-        grouped = []
-        for proc_data_to_plot in data_to_plot:
-            grouped.append(
-                proc_data_to_plot.groupby(["Step", state_key])
-                .size()
-                .unstack(fill_value=0)
-            )
-    return grouped
-
-
-def plot_grid(
+def plot_data(
     workdir: str,
-    data_to_plot: DataFrame or list,
-    state_list: list,
-    plot_increment: bool = False,
-    obs: None or DataFrame = None,
-    filename: str = "test.png",
-    xlabel_str: str = "Step",
-    ylabel_str: str = "Total State",
-    title_str: str = "Time series of total state value against step",
-    plot_percentile_flag: bool = False,
-    plot_weekly_data: bool = True,
-    plot_cfg: dict = {"linewidth": 0.5, "linestyle": "-"},
+    filename: str,
+    grouped_data: list,
+    state: int,
+    obs: DataFrame,
+    plot_cfg: dict,
+    xlabel_str: str,
+    ylabel_str: str,
+    title_str: str,
+    plot_weekly_data: bool,
+    plot_percentile_flag: bool,
 ):
-    grouped = vis_data_transformer(data_to_plot, plot_increment)
+    """Plot individual state data
 
+    Args:
+        workdir (str): Working directory
+        data_to_plot (DataFrame or list): Data to be plotted
+        plot_increment (bool, optional): If plot the newly increased case. Defaults to True.
+        obs (NoneorDataFrame, optional): If plot observations. Defaults to None.
+        filename (str, optional): Output/figure filename. Defaults to "test.png".
+        xlabel_str (str, optional): X-axis label. Defaults to "Step".
+        ylabel_str (str, optional): Y-axis label. Defaults to "Total State".
+        title_str (str, optional): Figure Title. Defaults to "Time series of total state value against step".
+        plot_percentile_flag (bool, optional): If plot the percentile for ensemble. Defaults to False.
+        plot_weekly_data (bool, optional): If convert daily data to weekly and plot. Defaults to True.
+        plot_cfg (_type_, optional): Plot configuration. Defaults to {"linewidth": 0.5, "linestyle": "-"}.
+        state_list (list, optional): Which state to plot. Defaults to [1, 2].
+    """
     output = {}
-    for i, proc_grouped in enumerate(grouped):
-        for state in proc_grouped.columns:
-            if state not in state_list:
-                continue
+    for i, proc_grouped in enumerate(grouped_data):
 
-            proc_grouped_data = proc_grouped[state]
-            proc_grouped_index = proc_grouped_data.index
+        proc_grouped_data = proc_grouped[state]
 
-            if plot_weekly_data:
-                proc_grouped_data, proc_grouped_index = daily2weekly_data(
-                    proc_grouped_data
-                )
+        if plot_weekly_data:
+            proc_grouped_data = daily2weekly_data(proc_grouped_data)
 
-            if state not in output:
-                output[state] = []
+        if state not in output:
+            output[state] = []
 
-            output[state].append(proc_grouped_data)
+        output[state].append(proc_grouped_data)
 
     if plot_percentile_flag:
         x = array(list(zip(*output[state]))).transpose()
@@ -130,7 +114,6 @@ def plot_grid(
         for i, proc_grouped_data in enumerate(output[state]):
             if i == 0:
                 plot(
-                    proc_grouped_index,
                     proc_grouped_data,
                     color=VIS_COLOR[state],
                     label=f"{State(state).name}",
@@ -139,24 +122,40 @@ def plot_grid(
                 )
             else:
                 plot(
-                    proc_grouped_index,
                     proc_grouped_data,
                     color=VIS_COLOR[state],
                     linewidth=plot_cfg["linewidth"],
                     linestyle=plot_cfg["linestyle"],
                 )
-
+    ref_data = proc_grouped_data
     if obs is not None:
-        plot(obs["Cases"].values[-22:], label="obs")
-        xtick_labels = (
-            obs["Date"][-22:].dt.strftime("%m-%d").tolist()
-        )  # obs["Date"][-22:].tolist()
-        xticks(range(len(xtick_labels)), xtick_labels, rotation=45)
+        if plot_weekly_data:
+            obs_to_plot = obs["weekly"]
+        else:
+            obs_to_plot = obs["daily"]
+        # min_date = proc_grouped_data.index.min()
+        # max_date = obs_to_plot.index.max()
+        min_date = min(proc_grouped_data.index.min(), obs_to_plot.index.min())
+        max_date = max(proc_grouped_data.index.max(), obs_to_plot.index.max())
+        obs_to_plot = obs_to_plot.loc[
+            (obs_to_plot.index >= min_date) & (obs_to_plot.index <= max_date)
+        ]
+        ref_data = obs_to_plot
+        plot(obs_to_plot["Cases"], label="obs")
+
+    downsample_factor = max(1, len(ref_data.index) // 10)
+
+    # Select every nth element from the index
+    downsampled_index = ref_data.index[::downsample_factor]
+
+    xtick_labels = downsampled_index.strftime(
+        "%m-%d"
+    ).tolist()  # obs["Date"][-22:].tolist()
+    xticks(downsampled_index, xtick_labels, rotation=45)
 
     xlabel(xlabel_str)
     ylabel(ylabel_str)
     title(title_str)
-    grid(True)
     legend()
     tight_layout()
     savefig(join(workdir, filename))

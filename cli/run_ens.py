@@ -11,8 +11,8 @@ from process.vis import plot_grid
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
 # base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
-base_dir = "/tmp/epimodel_esr_v3.0/Canterbury/ens_{run_id}/"
-obs = read_obs("etc/test_data/measles_cases_2019.parquet", [""])
+base_dir = "/tmp/epimodel_esr_v3.0/Northland/ens_{run_id}/"
+obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Northland"])
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Hutt Valley"])
 
 proc_data_list = []

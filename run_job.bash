@@ -1,12 +1,15 @@
 #!/bin/bash
 
-num_runs=10
-seed_infection=0
-infection_time=[0,20]
-region_name=gisborne
-dhb_name=Tairawhiti
 
-workdir_base=/tmp/epimodel_esr_v3.0/$dhb_name
+create_model=false
+run_model=true
+run_vis=false
+
+num_models=10
+region_name=Northland
+
+cfg_path=/home/zhangs/Github/EpiModel_ESR/etc/cfg/cfg.$region_name.yml
+workdir_base=/tmp/epimodel_esr_v5.0/$region_name
 syspop_base_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_base.parquet
 syspop_diary_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_diaries.parquet
 syspop_address_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_location.parquet
@@ -19,11 +22,30 @@ export PYTHONPATH=/home/zhangs/Github/EpiModel_ESR
 
 source activate epimodel_esr
 
-# Run the script multiple times
-for ((i=1; i<=num_runs; i++))
-do
-   echo "Running iteration $i"
-   # echo "nohup python cli/run.py --workdir ${workdir_base}_$i --syspop_base_path ${syspop_base_path} --syspop_diary_path ${syspop_diary_path} --syspop_address_path ${syspop_address_path} --dhb_list ${dhb_list} >& $workdir_base/log_$i &"
-   nohup python cli/run_model.py --workdir ${workdir_base}/ens_$i --syspop_base_path ${syspop_base_path} --syspop_diary_path ${syspop_diary_path} --syspop_address_path ${syspop_address_path} --syspop_healthcare_path ${syspop_healthcare_path} --dhb_list ${dhb_name} --sample_ratio 0.15 --seed_infection ${seed_infection} --infection_time ${infection_time} >& $workdir_base/log.$i &
-done
 
+if $create_model
+then
+   for ((i=1; i<=num_models; i++))
+      do
+         echo "Running iteration (create_model) $i"
+         nohup python cli/run_model.py --create_model --workdir ${workdir_base} --cfg ${cfg_path} --model_id $i >& $workdir_base/log.create_model_$i &
+      done
+fi
+
+if $run_model
+then
+   for ((i=1; i<=num_models; i++))
+      do
+         echo "Running iteration (run_model) $i"
+         nohup python cli/run_model.py --run_model --workdir ${workdir_base} --cfg ${cfg_path} --model_id $i >& $workdir_base/log.run_model_$i &
+      done
+fi
+
+if $run_vis
+then
+   for ((i=1; i<=num_models; i++))
+      do
+         echo "Running iteration (run_vis) $i"
+         nohup python cli/run_model.py --run_vis --workdir ${workdir_base} --model_id $i >& $workdir_base/log.vis_$i &
+      done
+fi

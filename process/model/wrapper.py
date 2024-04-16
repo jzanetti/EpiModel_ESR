@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import getLogger
 from os.path import exists
 from random import randint as random_randint
@@ -9,60 +10,35 @@ from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from pandas import DataFrame
+from pandas import to_datetime as pandas_to_datetime
+from pandas import to_timedelta as pandas_to_timedelta
 
 from process import SAVED_MODEL_PATH
 from process.model.disease import Agents, State
-from process.model.weight import cal_reproduction_weight
-from process.utils import (
-    create_newly_increased_case,
-    open_saved_model,
-    read_syspop_data,
-)
+from process.model.utils import cal_reproduction_weight, create_newly_increased_case
+from process.utils import open_saved_model, read_syspop_data
 
 logger = getLogger()
 
 
-def init_model(
-    workdir: str,
-    syspop_base_path: str or None,
-    syspop_diary_path: str or None,
-    syspop_address_path: str or None,
-    syspop_healthcare_path: str or None,
-    dhb_list: list or None,
-    sample_ratio: float or None,
-    overwrite_model: bool,
-):
-    """Initialize the model
+def get_steps(intital_timestep: datetime, infection_time: list) -> dict:
+    """Get timesteps based on datetime
 
     Args:
-        workdir (str): Working directory
-        syspop_base_path (strorNone): Synthetic population (base) data path
-        syspop_diary_path (strorNone): Synthetic population (diary) data path
-        syspop_address_path (strorNone): Synthetic population (address) data path
-        dhb_list (listorNone): DHB list to be selected from
-        sample_ratio (floatorNone): Interaction sample percentage
-        overwrite_model (bool): If previous model is presented, we will rewrite it
+        intital_timestep (datetime): _description_
+        infection_time (list): _description_
 
     Returns:
-        _type_: _description_
+        dict: _description_
     """
-    saved_model_path = SAVED_MODEL_PATH.format(workdir=workdir)
 
-    if not exists(saved_model_path) or overwrite_model:
-        data = read_syspop_data(
-            syspop_base_path,
-            syspop_diary_path,
-            syspop_address_path,
-            syspop_healthcare_path,
-            sample_p=sample_ratio,
-            dhb_list=dhb_list,
-        )
-        model = Epimodel_esr(data)
-        model.save(saved_model_path)
-    else:
-        model = open_saved_model(saved_model_path)
+    infection_time_start = datetime.strptime(str(infection_time[0]), "%Y%m%d")
+    infection_time_end = datetime.strptime(str(infection_time[1]), "%Y%m%d")
 
-    return model
+    timestep_start = (infection_time_start - intital_timestep).days
+    timestep_end = (infection_time_end - intital_timestep).days
+
+    return {"start": timestep_start, "end": timestep_end}
 
 
 class Epimodel_esr(Model):
@@ -71,6 +47,8 @@ class Epimodel_esr(Model):
         syspop_diary = model_data["syspop_diary"]
         syspop_address = model_data["syspop_address"]
         syspop_healthcare = model_data["syspop_healthcare"]
+        self.obs = model_data["obs"]
+
         self.grid = ContinuousSpace(
             x_max=syspop_address.latitude.max() + 0.1,
             y_max=syspop_address.longitude.max() + 0.1,
@@ -147,8 +125,8 @@ class Epimodel_esr(Model):
 
     def initial_infection(
         self,
-        initial_n: int,
-        infection_time: int or list = 0,
+        initial_infection: dict,
+        intital_timestep: datetime,
         cleanup_agents: bool = False,
     ):
         person_agents = [
@@ -159,21 +137,21 @@ class Epimodel_esr(Model):
                 agent.state = State.SUSCEPTIBLE
                 agent.infection_time = None
 
-        sampled_agents = random_sample(person_agents, initial_n)
+        for proc_infection in initial_infection:
 
-        for agent in sampled_agents:
-            agent.state = State.SEED_INFECTION
-            if isinstance(infection_time, list):
-                proc_infection_time = random_randint(
-                    infection_time[0], infection_time[1]
-                )
-            else:
-                proc_infection_time = infection_time
-            agent.infection_time = proc_infection_time
-        self.initial_infected = sampled_agents
+            initial_n = list(proc_infection.keys())[0]
+            proc_sampled_agents = random_sample(person_agents, initial_n)
+            proc_infection_time = proc_infection[initial_n]
+
+            for agent in proc_sampled_agents:
+                agent.state = State.SEED_INFECTION
+                proc_ts = get_steps(intital_timestep, proc_infection_time)
+                agent.infection_time = random_randint(proc_ts["start"], proc_ts["end"])
+            self.initial_infected = proc_sampled_agents
 
     def step(self, timestep):
         self.timestep = timestep
+        # self.datacollector.collect(self)
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -181,9 +159,18 @@ class Epimodel_esr(Model):
         with open(model_path, "wb") as fid:
             dill_dump(self, fid)
 
-    def postprocessing(self):
+    def postprocessing(self, intital_timestep):
         all_agents = self.datacollector.get_agent_vars_dataframe()
-        self.output = create_newly_increased_case(
+        decoded_output = create_newly_increased_case(
             all_agents,
             list(all_agents["State"].unique()),
         )
+        if intital_timestep is not None:
+            # decoded_output["Step"] = pandas_to_datetime(
+            #    intital_timestep, format="%Y%m%d"
+            # ) + pandas_to_timedelta(decoded_output["Step"], unit="D")
+            decoded_output["Step"] = intital_timestep + pandas_to_timedelta(
+                decoded_output["Step"], unit="D"
+            )
+
+        self.output = decoded_output

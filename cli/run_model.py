@@ -1,13 +1,11 @@
 import warnings
 from argparse import ArgumentParser
 from os import makedirs
-from os.path import exists, join
+from os.path import exists
 
-from process import ENS_NUMBER, TOTAL_TIMESTEPS
 from process.args import obtain_args
-from process.model.wrapper import init_model
 from process.utils import setup_logging
-from process.vis import plot_grid, plot_infectiousness_profile
+from process.wrapper import create_model_wrapper, run_model_wrapper, run_vis_wrapper
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -16,136 +14,54 @@ from logging import getLogger
 logger = getLogger()
 
 
-def run_epimodel_esr(
+def main(
     workdir: str,
-    syspop_base_path: str or None,
-    syspop_diary_path: str or None,
-    syspop_address_path: str or None,
-    syspop_healthcare_path: str or None,
-    dhb_list: list or None,
-    sample_ratio: float or None,
-    seed_infection: int,
-    infection_time: list,
-    overwrite_model: bool,
+    cfg_path: str,
+    model_id: str,
+    create_model_flag: bool,
+    run_model_flag: bool,
+    run_vis_flag: bool,
 ):
-    """Run epimodel_ESR
 
-    Args:
-        workdir (str): Working directory
-        syspop_base_path (strorNone): Synthetic population (base) data path
-        syspop_diary_path (strorNone): Synthetic population (diary) data path
-        syspop_address_path (strorNone): Synthetic population (address) data path
-        dhb_list (listorNone): DHB list to be selected from
-        sample_ratio (floatorNone): Interaction sample percentage
-        overwrite_model (bool): If previous model is presented, we will rewrite it
-    """
     if not exists(workdir):
         makedirs(workdir)
     setup_logging(workdir=workdir)
 
-    all_model_outputs = []
-    # for ens_i in range(2):
-    for ens_i in range(ENS_NUMBER):
-        logger.info(f"Initialize the EpiModel_ESR {ens_i}...")
+    if create_model_flag:
+        create_model_wrapper(workdir, cfg_path, model_id)
 
-        if ens_i > 0:
-            overwrite_model = False
+    if run_model_flag:
+        run_model_wrapper(workdir, cfg_path, model_id)
 
-        model = init_model(
-            workdir,
-            syspop_base_path,
-            syspop_diary_path,
-            syspop_address_path,
-            syspop_healthcare_path,
-            dhb_list,
-            sample_ratio,
-            overwrite_model,
-        )
-
-        logger.info(
-            f"Initial infection {ens_i} with infection time of {infection_time}"
-        )
-        model.initial_infection(
-            seed_infection, cleanup_agents=True, infection_time=infection_time
-        )
-
-        logger.info(f"Running the model {ens_i} ...")
-        for i in range(TOTAL_TIMESTEPS):
-            logger.info(f" -- Step {i} ...")
-            model.step(i)
-
-        logger.info(f"Saving model outputs {ens_i} ...")
-        model.postprocessing()
-        model.output.to_parquet(join(workdir, f"output_ens_{ens_i}.parquet"))
-        all_model_outputs.append(model.output)
-
-    logger.info("Plotting model outputs ...")
-    plot_grid(
-        workdir,
-        all_model_outputs,
-        state_list=[2],
-        plot_increment=True,
-        plot_weekly_data=True,
-    )
-    plot_infectiousness_profile(workdir, model.agents)
-
-    logger.info("Job finished")
+    if run_vis_flag:
+        run_vis_wrapper(workdir, cfg_path, model_id)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Run EpiModel_ESR")
+
     parser = obtain_args(parser)
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    """
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/test/northland",
-            "--syspop_base_path",
-            "etc/test_data/gisborne/syspop_base.parquet",
-            "--syspop_diary_path",
-            "etc/test_data/gisborne/syspop_diaries.parquet",
-            "--syspop_address_path",
-            "etc/test_data/gisborne/syspop_location.parquet",
-            "--syspop_healthcare_path",
-            "etc/test_data/gisborne/syspop_healthcare.parquet",
-            "--dhb_list",
-            # "Hutt_Valley",
-            # "Counties Manukau",
-            "Tairawhiti",
-            "--sample_ratio",
-            "0.15",
-            "--seed_infection",
-            "20",
-            "--overwrite_model",
+            "/tmp/epimodel_esr_v5.0/Northland/",
+            "--cfg",
+            "etc/cfg/cfg.Northland.yml",
+            "--run_model",
+            "--run_vis",
+            "--model_id",
+            "3",
         ]
     )
-    """
 
-    """
-    args = parser.parse_args(
-        [
-            "--workdir",
-            "/tmp/epimodel_esr_v3.0/Canterbury/ens_10/",
-            "--seed_infection",
-            "35",
-            "--infection_time",
-            "[0, 20]",
-        ]
-    )
-    """
-
-    run_epimodel_esr(
+    main(
         args.workdir,
-        args.syspop_base_path,
-        args.syspop_diary_path,
-        args.syspop_address_path,
-        args.syspop_healthcare_path,
-        [s.replace("_", " ") for s in args.dhb_list],  # e.g., counties_manukau
-        float(args.sample_ratio),
-        int(args.seed_infection),
-        eval(args.infection_time),
-        args.overwrite_model,
+        args.cfg,
+        args.model_id,
+        args.create_model,
+        args.run_model,
+        args.run_vis,
     )
