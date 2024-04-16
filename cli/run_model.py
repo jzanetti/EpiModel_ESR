@@ -42,8 +42,9 @@ if __name__ == "__main__":
 
     parser = obtain_args(parser)
 
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
+    """
     args = parser.parse_args(
         [
             "--workdir",
@@ -56,6 +57,7 @@ if __name__ == "__main__":
             "3",
         ]
     )
+    """
 
     main(
         args.workdir,

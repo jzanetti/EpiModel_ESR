@@ -3,7 +3,6 @@
 
 create_model=false
 run_model=true
-run_vis=false
 
 num_models=10
 region_name=Northland
@@ -37,15 +36,6 @@ then
    for ((i=1; i<=num_models; i++))
       do
          echo "Running iteration (run_model) $i"
-         nohup python cli/run_model.py --run_model --workdir ${workdir_base} --cfg ${cfg_path} --model_id $i >& $workdir_base/log.run_model_$i &
-      done
-fi
-
-if $run_vis
-then
-   for ((i=1; i<=num_models; i++))
-      do
-         echo "Running iteration (run_vis) $i"
-         nohup python cli/run_model.py --run_vis --workdir ${workdir_base} --model_id $i >& $workdir_base/log.vis_$i &
+         nohup python cli/run_model.py --run_model --run_vis --workdir ${workdir_base} --cfg ${cfg_path} --model_id $i >& $workdir_base/log.run_model_$i &
       done
 fi
