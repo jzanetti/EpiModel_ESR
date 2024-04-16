@@ -16,7 +16,7 @@ def plot_wrapper(
     title_str: str = "Time series of total state value against step",
     plot_percentile_flag: bool = False,
     plot_weekly_data: bool = True,
-    plot_cfg: dict = {"linewidth": 0.5, "linestyle": "-"},
+    plot_cfg: dict = {"linewidth": 0.15, "linestyle": "-"},
     state_list: list = [1, 2],
 ):
     """Plot timeseries such as infection and its comparisons with obs

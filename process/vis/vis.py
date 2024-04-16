@@ -4,6 +4,7 @@ from random import sample as random_sample
 from matplotlib.cm import ScalarMappable, viridis
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from matplotlib.pyplot import (
+    bar,
     close,
     figure,
     fill_between,
@@ -97,14 +98,14 @@ def plot_data(
     if plot_percentile_flag:
         x = array(list(zip(*output[state]))).transpose()
 
-        percentiles = {50: "r", 75: "g", 90: "b"}
+        percentiles = {50: "r", 75: "g", 90: "c"}
 
         # Calculate percentiles
         data_percentiles = percentile(x, list(percentiles.keys()), axis=0)
 
         for i, percentile_key in enumerate(percentiles):
             plot(
-                range(data_percentiles.shape[1]),
+                output[state][0].index,
                 data_percentiles[i, :],
                 color=percentiles[percentile_key],
                 label=percentile_key,
@@ -141,7 +142,7 @@ def plot_data(
             (obs_to_plot.index >= min_date) & (obs_to_plot.index <= max_date)
         ]
         ref_data = obs_to_plot
-        plot(obs_to_plot["Cases"], label="obs")
+        bar(obs_to_plot.index, obs_to_plot["Cases"], width=5.0, label="obs")
 
     downsample_factor = max(1, len(ref_data.index) // 10)
 
