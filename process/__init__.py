@@ -34,6 +34,6 @@ MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
 
 TOTAL_TIMESTEPS = 180
 
-VIS_COLOR = {0: "red", 1: "green", 2: "blue"}
+VIS_COLOR = {0: "red", 1: "green", 2: "grey"}
 
 DEBUG_FLAG = True

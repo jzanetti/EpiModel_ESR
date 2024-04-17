@@ -21,8 +21,6 @@ for i, proc_file in enumerate(all_files):
     print(f"{i}/{total_files}")
     proc_data = read_parquet(proc_file)
     proc_data_list.append(proc_data)
-    if i > 15:
-        break
 
 plot_wrapper(
     base_dir,

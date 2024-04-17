@@ -12,6 +12,7 @@ create_model:
 
 run_sims:
   seed_infection:
-    3: [0, 10]
-    3: [20, 30]
-  intital_timestep: 20240301
+    - 20: [20190615, 20190715]
+    - 40: [20190630, 20190830]
+    #- 30: [20190715, 20190815]
+  intital_timestep: 20190501

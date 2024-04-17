@@ -96,12 +96,14 @@ def plot_data(
         output[state].append(proc_grouped_data)
 
     if plot_percentile_flag:
-        x = array(list(zip(*output[state]))).transpose()
+        output_transpose = array(list(zip(*output[state]))).transpose()
 
         percentiles = {50: "r", 75: "g", 90: "c"}
 
         # Calculate percentiles
-        data_percentiles = percentile(x, list(percentiles.keys()), axis=0)
+        data_percentiles = percentile(
+            output_transpose, list(percentiles.keys()), axis=0
+        )
 
         for i, percentile_key in enumerate(percentiles):
             plot(
@@ -134,8 +136,7 @@ def plot_data(
             obs_to_plot = obs["weekly"]
         else:
             obs_to_plot = obs["daily"]
-        # min_date = proc_grouped_data.index.min()
-        # max_date = obs_to_plot.index.max()
+
         min_date = min(proc_grouped_data.index.min(), obs_to_plot.index.min())
         max_date = max(proc_grouped_data.index.max(), obs_to_plot.index.max())
         obs_to_plot = obs_to_plot.loc[

@@ -89,7 +89,7 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
         all_model_outputs.append(proc_model)
 
     if obs_path is not None:
-        obs = read_obs(obs_path, dhb_list, ref_year=2024)
+        obs = read_obs(obs_path, dhb_list, ref_year=2019)
 
     plot_wrapper(
         workdir,
