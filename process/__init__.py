@@ -26,11 +26,11 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
-ENS_NUMBER = 10
+ENS_NUMBER = 2
 
 INFECTED_NO_REPORT_RATIO = 0.0
 
-MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
+# MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
 
 TOTAL_TIMESTEPS = 180
 

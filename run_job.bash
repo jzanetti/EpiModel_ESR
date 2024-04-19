@@ -5,7 +5,7 @@ create_model=false
 run_model=true
 
 num_models=10
-region_name=Northland
+region_name=Auckland
 
 cfg_path=/home/zhangs/Github/EpiModel_ESR/etc/cfg/cfg.$region_name.yml
 workdir_base=/tmp/epimodel_esr_v5.0/$region_name

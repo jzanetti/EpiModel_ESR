@@ -1,3 +1,4 @@
+from datetime import datetime
 from random import uniform as random_uniform
 
 from numpy import linspace as numpy_linspace
@@ -5,6 +6,30 @@ from pandas import DataFrame
 from scipy.stats import gamma as scipy_gamma
 
 from process import CLINICAL_PARAMS, TOTAL_TIMESTEPS
+
+
+def get_steps(intital_timestep: datetime, target_time: list) -> dict or int:
+    """Get timesteps based on datetime
+
+    Args:
+        intital_timestep (datetime): _description_
+        infection_time (list): _description_
+
+    Returns:
+        dict: _description_
+    """
+
+    if isinstance(target_time, str):
+        target_time = datetime.strptime(target_time, "%Y%m%d")
+        return (target_time - intital_timestep).days
+
+    target_time_start = datetime.strptime(str(target_time[0]), "%Y%m%d")
+    target_time_end = datetime.strptime(str(target_time[1]), "%Y%m%d")
+
+    timestep_start = (target_time_start - intital_timestep).days
+    timestep_end = (target_time_end - intital_timestep).days
+
+    return {"start": timestep_start, "end": timestep_end}
 
 
 def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataFrame:

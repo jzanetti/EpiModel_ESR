@@ -10,8 +10,25 @@ create_model:
   dhb_list:
     - Northland
 
-run_sims:
+run_model:
   seed_infection:
-    - 2: [20240811, 20240820]
-    - 2: [20241001, 20241015]
-  intital_timestep: 20240801
+    - 20: [20190811, 20190820] # 2: [20190811, 20190820]
+    - 20: [20191001, 20191015] # 2: [20191001, 20191015]
+  intital_timestep: 20190801
+
+measures:
+  vaccine:
+    - 0.98:
+        enable: false
+        ethnicity:
+          - Maori
+          - Asian
+          - Pacific
+          - European
+          - MELAA
+        age:
+          - 0-999
+        time: 20191001
+  stay_at_home_if_symptom:
+    enable: true
+    percentage: 0.75

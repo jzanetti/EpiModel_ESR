@@ -51,9 +51,12 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     for ens_i in range(ENS_NUMBER):
         logger.info(f"Initialize the EpiModel_ESR {ens_i}...")
         proc_model = deepcopy(model)
+
         proc_model.initial_infection(
             seed_infection, intital_timestep, cleanup_agents=True
         )
+        proc_model.measures(intital_timestep, cfg["measures"])
+
         logger.info(f"Running the model {ens_i} ...")
         for i in range(TOTAL_TIMESTEPS):
             logger.info(f" -- Step {i} ...")

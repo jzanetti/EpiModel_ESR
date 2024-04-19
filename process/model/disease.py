@@ -6,7 +6,7 @@ from random import uniform as random_uniform
 from mesa import Agent
 from numpy.random import choice as numpy_choice
 
-from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO, MEASURES
+from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO
 from process.model.utils import cal_infectiousness_profile, calculate_disease_days
 
 logger = getLogger()
@@ -120,7 +120,7 @@ class Agents(Agent):
             # Step 3: Check if the agent has symptoms,
             #          if so there is a chance he/she may stay at home,
             # ---------------------------------------------
-            if MEASURES["stay_at_home_if_symptom"]["enable"]:
+            if self.model.stay_at_home_if_symptom["enable"]:
                 if (
                     delta_t > self.infection_to_symptom_days["start"]
                     or delta_t < self.infection_to_symptom_days["end"]
@@ -128,8 +128,8 @@ class Agents(Agent):
                     if numpy_choice(
                         [True, False],
                         p=[
-                            MEASURES["stay_at_home_if_symptom"]["percentage"],
-                            1.0 - MEASURES["stay_at_home_if_symptom"]["percentage"],
+                            self.model.stay_at_home_if_symptom["percentage"],
+                            1.0 - self.model.stay_at_home_if_symptom["percentage"],
                         ],
                     ):
                         return
@@ -167,7 +167,11 @@ class Agents(Agent):
                     continue
 
                 if neighbor.state == State.SUSCEPTIBLE:
-                    if neighbor.vaccine_status == Vaccine.NO:
+
+                    if neighbor.vaccine_status == Vaccine.NO or (
+                        neighbor.imms_timestep is not None
+                        and neighbor.imms_timestep > self.model.timestep
+                    ):
 
                         if numpy_choice(
                             [True, False],
@@ -182,6 +186,7 @@ class Agents(Agent):
                         neighbor.infection_time = self.model.timestep
                         infected_neighbors.append(neighbor)
                     elif neighbor.vaccine_status in [Vaccine.FULL, Vaccine.PARTIAL]:
+
                         if neighbor.vaccine_status == Vaccine.FULL:
                             proc_vaccine_efficiency = self.vaccine_efficiency_full
                         else:

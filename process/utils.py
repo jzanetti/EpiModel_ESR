@@ -256,4 +256,6 @@ def read_cfg(cfg_path: str, task_name: str) -> dict:
         return cfg["create_model"]
 
     if task_name == "run_model":
-        return cfg["run_sims"]
+        proc_cfg = cfg["run_model"]
+        proc_cfg["measures"] = cfg["measures"]
+        return proc_cfg

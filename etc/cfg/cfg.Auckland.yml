@@ -10,9 +10,25 @@ create_model:
   dhb_list:
     - Counties Manukau
 
-run_sims:
+run_model:
   seed_infection:
     - 20: [20190615, 20190715]
     - 40: [20190630, 20190830]
-    #- 30: [20190715, 20190815]
   intital_timestep: 20190501
+
+measures:
+  vaccine:
+    - 0.98:
+        enable: false
+        ethnicity:
+          - Maori
+          - Asian
+          - Pacific
+          - European
+          - MELAA
+        age:
+          - 0-999
+        time: 20191001
+  stay_at_home_if_symptom:
+    enable: true
+    percentage: 0.75

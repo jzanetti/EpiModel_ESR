@@ -6,11 +6,13 @@ from pandas import read_parquet
 from process.utils import read_obs
 from process.vis.wrapper import plot_wrapper
 
+# nohup python etc/scripts/run_ens.py >& log &
+
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
 # base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
-base_dir = "/tmp/epimodel_esr_v5.0/Northland"
-obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Northland"], ref_year=2024)
+base_dir = "/tmp/epimodel_esr_v5.0/Auckland"
+obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Auckland"], ref_year=2019)
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Hutt Valley"])
 
 proc_data_list = []

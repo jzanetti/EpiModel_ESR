@@ -10,8 +10,25 @@ create_model:
   dhb_list:
     - Tairawhiti
 
-run_sims:
+run_model:
   seed_infection:
     3: [0, 10]
     3: [20, 30]
   intital_timestep: 20240301
+
+measures:
+  vaccine:
+    - 0.98:
+        enable: false
+        ethnicity:
+          - Maori
+          - Asian
+          - Pacific
+          - European
+          - MELAA
+        age:
+          - 0-999
+        time: 20191001
+  stay_at_home_if_symptom:
+    enable: true
+    percentage: 0.75

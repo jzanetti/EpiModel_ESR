@@ -10,35 +10,16 @@ from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from pandas import DataFrame
-from pandas import to_datetime as pandas_to_datetime
 from pandas import to_timedelta as pandas_to_timedelta
 
-from process import SAVED_MODEL_PATH
-from process.model.disease import Agents, State
-from process.model.utils import cal_reproduction_weight, create_newly_increased_case
-from process.utils import open_saved_model, read_syspop_data
+from process.model.disease import Agents, State, Vaccine
+from process.model.utils import (
+    cal_reproduction_weight,
+    create_newly_increased_case,
+    get_steps,
+)
 
 logger = getLogger()
-
-
-def get_steps(intital_timestep: datetime, infection_time: list) -> dict:
-    """Get timesteps based on datetime
-
-    Args:
-        intital_timestep (datetime): _description_
-        infection_time (list): _description_
-
-    Returns:
-        dict: _description_
-    """
-
-    infection_time_start = datetime.strptime(str(infection_time[0]), "%Y%m%d")
-    infection_time_end = datetime.strptime(str(infection_time[1]), "%Y%m%d")
-
-    timestep_start = (infection_time_start - intital_timestep).days
-    timestep_end = (infection_time_end - intital_timestep).days
-
-    return {"start": timestep_start, "end": timestep_end}
 
 
 class Epimodel_esr(Model):
@@ -47,7 +28,7 @@ class Epimodel_esr(Model):
         syspop_diary = model_data["syspop_diary"]
         syspop_address = model_data["syspop_address"]
         syspop_healthcare = model_data["syspop_healthcare"]
-        self.obs = model_data["obs"]
+        # self.obs = model_data["obs"]
 
         self.grid = ContinuousSpace(
             x_max=syspop_address.latitude.max() + 0.1,
@@ -123,6 +104,67 @@ class Epimodel_esr(Model):
 
         self.datacollector = DataCollector(agent_reporters={"State": "state"})
 
+        self.stay_at_home_if_symptom = None
+
+    def measures(self, intital_timestep: datetime, vac_cfg: dict):
+        person_agents = [
+            agent for agent in self.schedule.agents if isinstance(agent, Agents)
+        ]
+
+        # --------------------------------
+        # Stay at home if symptom
+        # --------------------------------
+        self.stay_at_home_if_symptom = vac_cfg["stay_at_home_if_symptom"]
+
+        # --------------------------------
+        # Vaccination adjustment
+        # --------------------------------
+        vac_status = {"nature": [], "full": [], "partial": [], "no": []}
+
+        for id, proc_agent in enumerate(person_agents):
+            if proc_agent.vaccine_status.value == 0:
+                vac_status["no"].append(id)
+            elif proc_agent.vaccine_status.value == 1:
+                vac_status["partial"].append(id)
+            elif proc_agent.vaccine_status.value == 2:
+                vac_status["full"].append(id)
+            elif proc_agent.vaccine_status.value == 3:
+                vac_status["nature"].append(id)
+
+        imms = (
+            len(vac_status["nature"])
+            + len(vac_status["full"])
+            + len(vac_status["partial"])
+        )
+        no_imms = len(vac_status["no"])
+        total = imms + no_imms
+        imms_ratio = imms / total
+
+        for proc_vac_cfg in vac_cfg["vaccine"]:
+
+            target_ratio = list(proc_vac_cfg.keys())[0]
+
+            if not proc_vac_cfg[target_ratio]["enable"]:
+                continue
+
+            ratio_change = target_ratio - imms_ratio
+            if ratio_change > 0:  # we need to improve imms
+                imms_time = proc_vac_cfg[target_ratio]["time"]
+                people_ids = random_sample(vac_status["no"], int(total * ratio_change))
+                for proc_people_id in people_ids:
+                    person_agents[proc_people_id].vaccine_status = Vaccine.FULL
+                    if imms_time is not None:
+                        person_agents[proc_people_id].imms_timestep = get_steps(
+                            intital_timestep, str(imms_time)
+                        )
+
+            if ratio_change < 0:  # we need to remove imms
+                people_ids = random_sample(
+                    vac_status["full"], int(total * ratio_change)
+                )
+                for proc_people_id in people_ids:
+                    person_agents[proc_people_id].vaccine_status = Vaccine.NO
+
     def initial_infection(
         self,
         initial_infection: dict,
@@ -132,10 +174,12 @@ class Epimodel_esr(Model):
         person_agents = [
             agent for agent in self.schedule.agents if isinstance(agent, Agents)
         ]
+
         if cleanup_agents:
             for agent in person_agents:
                 agent.state = State.SUSCEPTIBLE
                 agent.infection_time = None
+                agent.imms_timestep = None
 
         for proc_infection in initial_infection:
 
