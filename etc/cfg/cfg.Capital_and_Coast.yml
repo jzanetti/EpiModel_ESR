@@ -2,19 +2,19 @@
 create_model:
   sample_ratio: 0.15
   data_path:
-    syspop_base: etc/test_data/Auckland/syspop_base.parquet
-    syspop_diary: etc/test_data/Auckland/syspop_diaries.parquet
-    syspop_address: etc/test_data/Auckland/syspop_location.parquet
-    syspop_healthcare: etc/test_data/Auckland/syspop_healthcare.parquet
+    syspop_base: etc/test_data/Wellington/syspop_base.parquet
+    syspop_diary: etc/test_data/Wellington/syspop_diaries.parquet
+    syspop_address: etc/test_data/Wellington/syspop_location.parquet
+    syspop_healthcare: etc/test_data/Wellington/syspop_healthcare.parquet
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
-    - Auckland
+    - Capital and Coast
 
 run_model:
   seed_infection:
-    - 20: [20190615, 20190715]
-    - 40: [20190630, 20190830]
-  intital_timestep: 20190501
+    - 2: [20190811, 20190820]
+    - 2: [20191001, 20191015]
+  intital_timestep: 20190801
 
 measures:
   vaccine:

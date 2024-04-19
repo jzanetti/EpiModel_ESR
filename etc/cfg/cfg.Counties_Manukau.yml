@@ -2,19 +2,19 @@
 create_model:
   sample_ratio: 0.15
   data_path:
-    syspop_base: etc/test_data/Gisborne/syspop_base.parquet
-    syspop_diary: etc/test_data/Gisborne/syspop_diaries.parquet
-    syspop_address: etc/test_data/Gisborne/syspop_location.parquet
-    syspop_healthcare: etc/test_data/Gisborne/syspop_healthcare.parquet
+    syspop_base: etc/test_data/Auckland/syspop_base.parquet
+    syspop_diary: etc/test_data/Auckland/syspop_diaries.parquet
+    syspop_address: etc/test_data/Auckland/syspop_location.parquet
+    syspop_healthcare: etc/test_data/Auckland/syspop_healthcare.parquet
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
-    - Tairawhiti
+    - Counties Manukau
 
 run_model:
   seed_infection:
-    3: [0, 10]
-    3: [20, 30]
-  intital_timestep: 20240301
+    - 20: [20190615, 20190715]
+    - 40: [20190630, 20190830]
+  intital_timestep: 20190501
 
 measures:
   vaccine:
