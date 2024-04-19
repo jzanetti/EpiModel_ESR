@@ -28,7 +28,6 @@ class Epimodel_esr(Model):
         syspop_diary = model_data["syspop_diary"]
         syspop_address = model_data["syspop_address"]
         syspop_healthcare = model_data["syspop_healthcare"]
-        # self.obs = model_data["obs"]
 
         self.grid = ContinuousSpace(
             x_max=syspop_address.latitude.max() + 0.1,
@@ -86,8 +85,21 @@ class Epimodel_esr(Model):
                         "Found same person (id_type) presents in multiple places ..."
                     )
 
+                person_attr = syspop_base[
+                    syspop_base.id == int(person_id.split("_")[0])
+                ]
+                if len(person_attr) != 1:
+                    raise Exception("Found confusing agents from the dataset ...")
+
+                person_attr = {
+                    "age": person_attr.age.values[0],
+                    "gender": person_attr.gender.values[0],
+                    "ethnicity": person_attr.ethnicity.values[0],
+                }
+
                 proc_person = Agents(
                     person_id,
+                    person_attr,
                     self,
                     (
                         proc_lat[0],

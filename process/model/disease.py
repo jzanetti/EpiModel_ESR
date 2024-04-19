@@ -31,20 +31,19 @@ class Agents(Agent):
     def __init__(
         self,
         unique_id,
+        person_attr,
         model,
         pos,
         loc_type,
         imms_status,
-        infection_to_incubation_days: list = [0, 10],
-        infection_to_infectiousness_days: list = [10, 21],
-        infection_to_symptom_days: list = [11, 20],
-        infection_to_recovered_days: int = 21,
         days_buffer: float = 0.15,
     ):
         super().__init__(unique_id, model)
 
         self.unique_id = unique_id
-        self.age = self.random.normalvariate(20, 40)
+        self.age = person_attr["age"]
+        self.ethnicity = person_attr["ethnicity"]
+        self.gender = person_attr["gender"]
         self.pos = pos
         self.loc_type = loc_type
         self.state = State.SUSCEPTIBLE
