@@ -12,9 +12,9 @@ create_model:
 
 run_model:
   seed_infection:
-    - 20: [20190615, 20190715]
-    - 40: [20190630, 20190830]
-  intital_timestep: 20190501
+    - 50: [20190615, 20190730]
+    - 60: [20190715, 20190831]
+  intital_timestep: 20190601
 
 measures:
   vaccine:

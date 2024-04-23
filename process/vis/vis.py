@@ -98,7 +98,11 @@ def plot_data(
     if plot_percentile_flag:
         output_transpose = array(list(zip(*output[state]))).transpose()
 
-        percentiles = {50: "r", 75: "g", 90: "c"}
+        percentiles = {
+            50: {"color": "r", "label": "median"},
+            75: {"color": "g", "label": "75th percentile"},
+            90: {"color": "c", "label": "90th percentile"},
+        }
 
         # Calculate percentiles
         data_percentiles = percentile(
@@ -109,8 +113,8 @@ def plot_data(
             plot(
                 output[state][0].index,
                 data_percentiles[i, :],
-                color=percentiles[percentile_key],
-                label=percentile_key,
+                color=percentiles[percentile_key]["color"],
+                label=percentiles[percentile_key]["label"],
             )
 
     for state in output:
@@ -119,7 +123,8 @@ def plot_data(
                 plot(
                     proc_grouped_data,
                     color=VIS_COLOR[state],
-                    label=f"{State(state).name}",
+                    # label=f"{State(state).name}",
+                    label="Scenario",
                     linewidth=plot_cfg["linewidth"],
                     linestyle=plot_cfg["linestyle"],
                 )
@@ -137,13 +142,17 @@ def plot_data(
         else:
             obs_to_plot = obs["daily"]
 
+        obs_to_plot = obs_to_plot[
+            (obs_to_plot.index >= proc_grouped_data.index.min())
+            & (obs_to_plot.index <= proc_grouped_data.index.max())
+        ]
         min_date = min(proc_grouped_data.index.min(), obs_to_plot.index.min())
         max_date = max(proc_grouped_data.index.max(), obs_to_plot.index.max())
         obs_to_plot = obs_to_plot.loc[
             (obs_to_plot.index >= min_date) & (obs_to_plot.index <= max_date)
         ]
         ref_data = obs_to_plot
-        bar(obs_to_plot.index, obs_to_plot["Cases"], width=5.0, label="obs")
+        bar(obs_to_plot.index, obs_to_plot["Cases"], width=5.0, label="confirmed cases")
 
     downsample_factor = max(1, len(ref_data.index) // 10)
 

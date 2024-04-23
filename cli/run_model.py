@@ -43,18 +43,19 @@ if __name__ == "__main__":
     parser = obtain_args(parser)
 
     args = parser.parse_args()
+
     """
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/epimodel_esr_test/Northland/",
+            "/tmp/epimodel_esr_v6.0/Northland/",
             "--cfg",
             "etc/cfg/cfg.Northland.yml",
-            "--create_model",
+            # "--create_model",
             "--run_model",
             "--run_vis",
             "--model_id",
-            "3",
+            "1",
         ]
     )
     """

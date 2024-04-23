@@ -72,6 +72,13 @@ def read_obs(
         return to_datetime(f"{year} {week} 1", format="%Y %U %w")
 
     obs = pandas_read_parquet(obs_path)
+    """
+    columns_to_convert = obs.columns.difference(["Region"])
+    obs[columns_to_convert] = obs[columns_to_convert].astype(float)
+
+    obs["Total"] = obs.drop(columns="Region").sum(axis=1)
+    sorted_obs = obs.sort_values(by="Total")
+    """
     obs = obs[obs["Region"].isin(DHB_list)]
     obs = obs.melt(id_vars=["Region"], var_name="Week", value_name="Cases")
     obs["Date"] = obs["Week"].apply(

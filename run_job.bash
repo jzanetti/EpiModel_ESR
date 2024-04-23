@@ -1,11 +1,13 @@
 #!/bin/bash
 
 
-create_model=true
-run_model=false
+create_model=false
+run_model=true
 
 num_models=10
-region_names=("Counties_Manukau" "Auckland" "Northland" "Canterbury" "Capital_and_Coast")
+# region_names=("Counties_Manukau" "Auckland" "Canterbury" "Capital_and_Coast")
+# region_names=("Northland")
+region_names=("Auckland")
 
 source activate epimodel_esr
 
@@ -37,7 +39,7 @@ do
    then
       for ((i=1; i<=num_models; i++))
          do
-            echo "Running iteration (run_model) $i"
+            echo "Running iteration (run_model) $region_name, $i"
             nohup python cli/run_model.py --run_model --run_vis --workdir ${workdir_base} --cfg ${cfg_path} --model_id $i >& $workdir_base/log.run_model_$i &
          done
    fi

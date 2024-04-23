@@ -8,13 +8,13 @@ create_model:
     syspop_healthcare: etc/test_data/Auckland/syspop_healthcare.parquet
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
-    - Auckland
+    - Waitemata
 
 run_model:
   seed_infection:
-    - 5: [20190701, 20190715]
-    - 20: [20190801, 20190830]
-  intital_timestep: 20190701
+    - 20: [20190615, 20190715]
+    - 30: [20190630, 20190830]
+  intital_timestep: 20190501
 
 measures:
   vaccine:

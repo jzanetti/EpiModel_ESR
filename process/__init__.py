@@ -26,7 +26,7 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
-ENS_NUMBER = 2
+ENS_NUMBER = 10
 
 INFECTED_NO_REPORT_RATIO = 0.0
 

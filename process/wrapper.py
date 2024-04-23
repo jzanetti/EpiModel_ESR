@@ -1,7 +1,8 @@
 from copy import deepcopy
 from datetime import datetime
 from logging import getLogger
-from os.path import join
+from os import makedirs
+from os.path import exists, join
 
 from pandas import read_parquet as pandas_read_parquet
 
@@ -16,7 +17,11 @@ logger = getLogger()
 def create_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     cfg = read_cfg(cfg_path, task_name="create_model")
 
-    saved_model_path = SAVED_MODEL_PATH.format(workdir=workdir, id=model_id)
+    model_dir = join(workdir, "models")
+    if not exists(model_dir):
+        makedirs(model_dir)
+
+    saved_model_path = SAVED_MODEL_PATH.format(workdir=model_dir, id=model_id)
 
     data = read_syspop_data(
         cfg["data_path"]["syspop_base"],
@@ -46,7 +51,13 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     seed_infection = cfg["seed_infection"]
     intital_timestep = datetime.strptime(str(cfg["intital_timestep"]), "%Y%m%d")
 
-    model = open_saved_model(SAVED_MODEL_PATH.format(workdir=workdir, id=model_id))
+    model = open_saved_model(
+        SAVED_MODEL_PATH.format(workdir=join(workdir, "models"), id=model_id)
+    )
+
+    output_dir = join(workdir, "output")
+    if not exists(output_dir):
+        makedirs(output_dir)
 
     for ens_i in range(ENS_NUMBER):
         logger.info(f"Initialize the EpiModel_ESR {ens_i}...")
@@ -65,7 +76,7 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
         logger.info(f"Saving model outputs {ens_i} ...")
         proc_model.postprocessing(intital_timestep)
         proc_model.output.to_parquet(
-            join(workdir, f"output_model_{model_id}_ens_{ens_i}.parquet")
+            join(output_dir, f"output_model_{model_id}_ens_{ens_i}.parquet")
         )
 
     logger.info("Simulation finished")
@@ -87,15 +98,20 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
 
     for ens_i in range(ENS_NUMBER):
         proc_model = pandas_read_parquet(
-            join(workdir, f"output_model_{model_id}_ens_{ens_i}.parquet")
+            join(workdir, "output", f"output_model_{model_id}_ens_{ens_i}.parquet")
         )
         all_model_outputs.append(proc_model)
 
     if obs_path is not None:
         obs = read_obs(obs_path, dhb_list, ref_year=2019)
 
+    vis_dir = join(workdir, "vis")
+
+    if not exists(vis_dir):
+        makedirs(vis_dir)
+
     plot_wrapper(
-        workdir,
+        vis_dir,
         all_model_outputs,
         plot_weekly_data=True,
         obs=obs,
