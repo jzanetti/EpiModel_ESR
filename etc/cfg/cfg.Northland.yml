@@ -12,8 +12,8 @@ create_model:
 
 run_model:
   seed_infection:
-    - 3: [20190811, 20190820]
-    - 3: [20190915, 20191001]
+    - 2: [20190811, 20190820]
+    - 2: [20190915, 20191001]
   intital_timestep: 20190801
 
 measures:

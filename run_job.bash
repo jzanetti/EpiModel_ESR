@@ -1,25 +1,30 @@
 #!/bin/bash
 
 
-create_model=false
-run_model=true
+create_model=true
+run_model=false
+
+workdir=/tmp/epimodel_esr_v7.0/2019
+cfg_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg/2019
+# data_dir=/home/zhangs/Github/EpiModel_ESR/etc/test_data
+# data_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/data/2019
 
 num_models=10
 # region_names=("Counties_Manukau" "Auckland" "Canterbury" "Capital_and_Coast")
 # region_names=("Northland")
-region_names=("Auckland")
+region_names=("Counties_Manukau")
 
 source activate epimodel_esr
 
 for region_name in "${region_names[@]}"
 do
 
-   cfg_path=/home/zhangs/Github/EpiModel_ESR/etc/cfg/cfg.$region_name.yml
-   workdir_base=/tmp/epimodel_esr_v6.0/$region_name
-   syspop_base_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_base.parquet
-   syspop_diary_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_diaries.parquet
-   syspop_address_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_location.parquet
-   syspop_healthcare_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_healthcare.parquet
+   cfg_path=$cfg_dir/cfg.$region_name.yml
+   workdir_base=$workdir/$region_name
+   #syspop_base_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_base.parquet
+   #syspop_diary_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_diaries.parquet
+   #syspop_address_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_location.parquet
+   #syspop_healthcare_path=/home/zhangs/Github/EpiModel_ESR/etc/test_data/$region_name/syspop_healthcare.parquet
 
 
    mkdir -p ${workdir_base}

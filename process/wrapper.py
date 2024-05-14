@@ -15,6 +15,13 @@ logger = getLogger()
 
 
 def create_model_wrapper(workdir: str, cfg_path: str, model_id: str):
+    """Create the model, e.g., the agents and the features
+
+    Args:
+        workdir (str): Working directory
+        cfg_path (str): Configuration file path
+        model_id (str): Model ID
+    """
     cfg = read_cfg(cfg_path, task_name="create_model")
 
     model_dir = join(workdir, "models")
