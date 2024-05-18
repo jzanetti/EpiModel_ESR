@@ -48,10 +48,11 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/epimodel_esr_v7.0/Counties_Manukau",
+            "/tmp/epimodel_esr_v7.0/2022/Counties_Manukau",
             "--cfg",
-            "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
-            "--create_model",
+            # "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
+            "etc/cfg/cfg.Counties_Manukau.yml",
+            # "--create_model",
             "--run_model",
             "--run_vis",
             "--model_id",
@@ -59,6 +60,7 @@ if __name__ == "__main__":
         ]
     )
     """
+
     main(
         args.workdir,
         args.cfg,

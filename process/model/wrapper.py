@@ -12,11 +12,13 @@ from mesa.time import RandomActivation
 from pandas import DataFrame
 from pandas import to_timedelta as pandas_to_timedelta
 
-from process.model.disease import Agents, State, Vaccine
+from process.model import State, Vaccine
+from process.model.disease import Agents
 from process.model.utils import (
     cal_reproduction_weight,
     create_newly_increased_case,
     get_steps,
+    vaccination_adjustment,
 )
 
 logger = getLogger()
@@ -131,51 +133,7 @@ class Epimodel_esr(Model):
         # --------------------------------
         # Vaccination adjustment
         # --------------------------------
-        vac_status = {"nature": [], "full": [], "partial": [], "no": []}
-
-        for id, proc_agent in enumerate(person_agents):
-            if proc_agent.vaccine_status.value == 0:
-                vac_status["no"].append(id)
-            elif proc_agent.vaccine_status.value == 1:
-                vac_status["partial"].append(id)
-            elif proc_agent.vaccine_status.value == 2:
-                vac_status["full"].append(id)
-            elif proc_agent.vaccine_status.value == 3:
-                vac_status["nature"].append(id)
-
-        imms = (
-            len(vac_status["nature"])
-            + len(vac_status["full"])
-            + len(vac_status["partial"])
-        )
-        no_imms = len(vac_status["no"])
-        total = imms + no_imms
-        imms_ratio = imms / total
-
-        for proc_vac_cfg in vac_cfg["vaccine"]:
-
-            target_ratio = list(proc_vac_cfg.keys())[0]
-
-            if not proc_vac_cfg[target_ratio]["enable"]:
-                continue
-
-            ratio_change = target_ratio - imms_ratio
-            if ratio_change > 0:  # we need to improve imms
-                imms_time = proc_vac_cfg[target_ratio]["time"]
-                people_ids = random_sample(vac_status["no"], int(total * ratio_change))
-                for proc_people_id in people_ids:
-                    person_agents[proc_people_id].vaccine_status = Vaccine.FULL
-                    if imms_time is not None:
-                        person_agents[proc_people_id].imms_timestep = get_steps(
-                            intital_timestep, str(imms_time)
-                        )
-
-            if ratio_change < 0:  # we need to remove imms
-                people_ids = random_sample(
-                    vac_status["full"], int(total * ratio_change)
-                )
-                for proc_people_id in people_ids:
-                    person_agents[proc_people_id].vaccine_status = Vaccine.NO
+        vaccination_adjustment(person_agents, intital_timestep, vac_cfg["vaccine"])
 
     def initial_infection(
         self,

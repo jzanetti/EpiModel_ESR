@@ -19,15 +19,12 @@ run_model:
 measures:
   vaccine:
     - 0.98:
-        enable: false
+        enable: true
         ethnicity:
           - Maori
           - Asian
-          - Pacific
-          - European
-          - MELAA
         age:
-          - 0-999
+          - 0-28
         time: 20191001
   stay_at_home_if_symptom:
     enable: true

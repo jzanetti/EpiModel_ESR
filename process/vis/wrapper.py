@@ -1,3 +1,6 @@
+from os import makedirs
+from os.path import exists
+
 from pandas import DataFrame
 
 from process.vis.utils import data_transformer
@@ -35,6 +38,10 @@ def plot_wrapper(
         plot_cfg (_type_, optional): Plot configuration. Defaults to {"linewidth": 0.5, "linestyle": "-"}.
         state_list (list, optional): Which state to plot. Defaults to [1, 2].
     """
+
+    if not exists(workdir):
+        makedirs(workdir)
+
     if agents is not None:
         plot_infectiousness_profile(workdir, agents)
 

@@ -7,11 +7,12 @@ from mesa import Agent
 from numpy.random import choice as numpy_choice
 
 from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO
+from process.model import State, Vaccine
 from process.model.utils import cal_infectiousness_profile, calculate_disease_days
 
 logger = getLogger()
 
-
+"""
 class State(IntEnum):
     SUSCEPTIBLE = 0
     SEED_INFECTION = 1
@@ -25,6 +26,7 @@ class Vaccine(IntEnum):
     FULL = 2
     PARTIAL = 1
     NO = 0
+"""
 
 
 class Agents(Agent):

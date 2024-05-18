@@ -1,11 +1,11 @@
 #!/bin/bash
 
 
-create_model=true
-run_model=false
+create_model=false
+run_model=true
 
-workdir=/tmp/epimodel_esr_v7.0/2019
-cfg_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg/2019
+workdir=/tmp/epimodel_esr_v7.0/2022
+cfg_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg
 # data_dir=/home/zhangs/Github/EpiModel_ESR/etc/test_data
 # data_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/data/2019
 

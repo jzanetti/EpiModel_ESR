@@ -1,4 +1,5 @@
 from datetime import datetime
+from random import sample as random_sample
 from random import uniform as random_uniform
 
 from numpy import linspace as numpy_linspace
@@ -6,6 +7,108 @@ from pandas import DataFrame
 from scipy.stats import gamma as scipy_gamma
 
 from process import CLINICAL_PARAMS, TOTAL_TIMESTEPS
+from process.model import Vaccine
+
+
+def obtain_average_imms(
+    person_agents: list, proc_vac_cfg: dict, target_ratio: float
+) -> dict:
+    """Obtain average immunisation in population
+
+    Args:
+        person_agents (list): all agents to be processed
+        proc_vac_cfg (dict): vaccination configuration
+        target_ratio (float): target immunisation rate
+
+    Returns:
+        dict: vaccination status
+    """
+
+    vac_status = {"nature": [], "full": [], "partial": [], "no": []}
+    for id, proc_agent in enumerate(person_agents):
+
+        ethnicity_flag = False
+        if proc_agent.ethnicity in proc_vac_cfg[target_ratio]["ethnicity"]:
+            ethnicity_flag = True
+
+        age_flag = False
+        for proc_age in proc_vac_cfg[target_ratio]["age"]:
+            proc_age = proc_age.split("-")
+            if proc_agent.age >= int(proc_age[0]) and proc_agent.age <= int(
+                proc_age[1]
+            ):
+                age_flag = True
+                break
+
+        if (ethnicity_flag is False) or (age_flag is False):
+            continue
+
+        if proc_agent.vaccine_status.value == 0:
+            vac_status["no"].append(id)
+        elif proc_agent.vaccine_status.value == 1:
+            vac_status["partial"].append(id)
+        elif proc_agent.vaccine_status.value == 2:
+            vac_status["full"].append(id)
+        elif proc_agent.vaccine_status.value == 3:
+            vac_status["nature"].append(id)
+
+    imms = (
+        len(vac_status["nature"]) + len(vac_status["full"]) + len(vac_status["partial"])
+    )
+    no_imms = len(vac_status["no"])
+    total = imms + no_imms
+    imms_ratio = imms / total
+
+    return {"vac_status": vac_status, "imms_ratio": imms_ratio, "total": total}
+
+
+def vaccination_adjustment(
+    person_agents: list, intital_timestep: datetime, vac_measures_cfg: dict
+) -> list:
+    """Adjust orginal vaccination coverage using the setups from configuration
+
+    Args:
+        person_agents (list): all agents to be processed
+        intital_timestep (datetime): the first timestep for the model
+        vac_measures_cfg (dict): vaccination coverage configuration
+
+    Returns:
+        list: updated agents
+    """
+    for proc_vac_cfg in vac_measures_cfg:
+
+        target_ratio = list(proc_vac_cfg.keys())[0]
+
+        if not proc_vac_cfg[target_ratio]["enable"]:
+            continue
+
+        population_imms = obtain_average_imms(person_agents, proc_vac_cfg, target_ratio)
+
+        ratio_change = target_ratio - population_imms["imms_ratio"]
+
+        if ratio_change > 0:  # we need to improve imms
+            imms_time = proc_vac_cfg[target_ratio]["time"]
+            people_ids = random_sample(
+                population_imms["vac_status"]["no"],
+                int(population_imms["total"] * ratio_change),
+            )
+            for proc_people_id in people_ids:
+                person_agents[proc_people_id].vaccine_status = Vaccine.FULL
+                if imms_time is not None:
+                    person_agents[proc_people_id].imms_timestep = get_steps(
+                        intital_timestep, str(imms_time)
+                    )
+
+        if ratio_change < 0:  # we need to remove imms
+            people_ids = random_sample(
+                population_imms["vac_status"]["full"]
+                + population_imms["vac_status"]["partial"],
+                int(population_imms["total"] * ratio_change),
+            )
+            for proc_people_id in people_ids:
+                person_agents[proc_people_id].vaccine_status = Vaccine.NO
+
+    return person_agents
 
 
 def get_steps(intital_timestep: datetime, target_time: list) -> dict or int:
