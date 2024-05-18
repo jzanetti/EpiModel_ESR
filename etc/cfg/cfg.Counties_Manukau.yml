@@ -20,6 +20,7 @@ measures:
   vaccine:
     - 0.98:
         enable: true
+        operator: fix # fix or by
         ethnicity:
           - Maori
           - Asian
