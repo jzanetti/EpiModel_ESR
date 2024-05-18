@@ -32,8 +32,6 @@ for i, proc_file in enumerate(all_files):
     logger.info(f"{i}/{total_files} ...")
     proc_data = read_parquet(proc_file)
     proc_data_list.append(proc_data)
-    if i > 3:
-        break
 
 logger.info("Plotting ...")
 plot_wrapper(
