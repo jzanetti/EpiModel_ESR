@@ -21,6 +21,7 @@ def plot_wrapper(
     plot_weekly_data: bool = True,
     plot_cfg: dict = {"linewidth": 0.2, "linestyle": "-"},
     state_list: list = [1, 2],
+    ylim_range: list or None = None,
 ):
     """Plot timeseries such as infection and its comparisons with obs
 
@@ -64,4 +65,5 @@ def plot_wrapper(
             title_str,
             plot_weekly_data,
             plot_percentile_flag,
+            ylim_range,
         )

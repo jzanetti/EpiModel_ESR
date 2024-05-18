@@ -18,6 +18,7 @@ from matplotlib.pyplot import (
     xlabel,
     xticks,
     ylabel,
+    ylim,
 )
 from mesa.agent import AgentSet as mesa_agentset
 from numpy import arange, array, linspace, percentile
@@ -65,6 +66,7 @@ def plot_data(
     title_str: str,
     plot_weekly_data: bool,
     plot_percentile_flag: bool,
+    ylim_range: list or None,
 ):
     """Plot individual state data
 
@@ -163,9 +165,12 @@ def plot_data(
         "%m-%d"
     ).tolist()  # obs["Date"][-22:].tolist()
     xticks(downsampled_index, xtick_labels, rotation=45)
-
     xlabel(xlabel_str)
     ylabel(ylabel_str)
+
+    if ylim_range is not None:
+        ylim(ylim_range[0], ylim_range[1])
+
     title(title_str)
     legend()
     tight_layout()

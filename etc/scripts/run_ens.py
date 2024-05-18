@@ -12,7 +12,7 @@ from process.vis.wrapper import plot_wrapper
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
 # base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
-base_dir = "/tmp/epimodel_esr_v7.0/2022/Counties_Manukau"
+base_dir = "/tmp/epimodel_esr_v7.0/2019/Counties_Manukau"
 obs = read_obs(
     "/home/zhangs/Github/EpiModel_ESR/etc/test_data/measles_cases_2019.parquet",
     ["Counties Manukau"],
@@ -32,7 +32,10 @@ for i, proc_file in enumerate(all_files):
     logger.info(f"{i}/{total_files} ...")
     proc_data = read_parquet(proc_file)
     proc_data_list.append(proc_data)
+    if i > 3:
+        break
 
+logger.info("Plotting ...")
 plot_wrapper(
     join(base_dir, "vis"),
     proc_data_list,
@@ -43,6 +46,7 @@ plot_wrapper(
     ylabel_str="Number of cases",
     title_str="Number of simulated and confirmed cases",
     filename=f"infection_all",
+    ylim_range=[0, 250],
 )
 
 logger.info("Jobs done ...")
