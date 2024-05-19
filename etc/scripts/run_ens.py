@@ -12,7 +12,7 @@ from process.vis.wrapper import plot_wrapper
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
 # base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
-base_dir = "/tmp/epimodel_esr_v7.0/2022/Counties_Manukau"
+base_dir = "/tmp/epimodel_esr_v7.0/2019/Counties_Manukau"
 obs = read_obs(
     "/home/zhangs/Github/EpiModel_ESR/etc/test_data/measles_cases_2019.parquet",
     ["Counties Manukau"],

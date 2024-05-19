@@ -1,4 +1,5 @@
 from os.path import join
+from pickle import dump as pickle_dump
 from random import sample as random_sample
 
 from matplotlib.cm import ScalarMappable, viridis
@@ -85,6 +86,7 @@ def plot_data(
         state_list (list, optional): Which state to plot. Defaults to [1, 2].
     """
     output = {}
+    export_data = {"percentile": None, "ens": None, "time": None, "obs": None}
     for i, proc_grouped in enumerate(grouped_data):
 
         proc_grouped_data = proc_grouped[state]
@@ -118,26 +120,34 @@ def plot_data(
                 color=percentiles[percentile_key]["color"],
                 label=percentiles[percentile_key]["label"],
             )
+            try:
+                export_data["percentile"] = {percentile_key: data_percentiles[i, :]}
+            except TypeError:
+                export_data["percentile"][percentile_key] = data_percentiles[i, :]
 
-    for state in output:
-        for i, proc_grouped_data in enumerate(output[state]):
-            if i == 0:
-                plot(
-                    proc_grouped_data,
-                    color=VIS_COLOR[state],
-                    # label=f"{State(state).name}",
-                    label="Scenario",
-                    linewidth=plot_cfg["linewidth"],
-                    linestyle=plot_cfg["linestyle"],
-                )
-            else:
-                plot(
-                    proc_grouped_data,
-                    color=VIS_COLOR[state],
-                    linewidth=plot_cfg["linewidth"],
-                    linestyle=plot_cfg["linestyle"],
-                )
+    for i, proc_grouped_data in enumerate(output[state]):
+        if i == 0:
+            plot(
+                proc_grouped_data,
+                color=VIS_COLOR[state],
+                # label=f"{State(state).name}",
+                label="Scenario",
+                linewidth=plot_cfg["linewidth"],
+                linestyle=plot_cfg["linestyle"],
+            )
+            export_data["ens"] = [proc_grouped_data.values]
+            export_data["time"] = proc_grouped_data.index.to_pydatetime().tolist()
+        else:
+            plot(
+                proc_grouped_data,
+                color=VIS_COLOR[state],
+                linewidth=plot_cfg["linewidth"],
+                linestyle=plot_cfg["linestyle"],
+            )
+            export_data["ens"].append(proc_grouped_data.values)
+
     ref_data = proc_grouped_data
+
     if obs is not None:
         if plot_weekly_data:
             obs_to_plot = obs["weekly"]
@@ -155,6 +165,11 @@ def plot_data(
         ]
         ref_data = obs_to_plot
         bar(obs_to_plot.index, obs_to_plot["Cases"], width=5.0, label="confirmed cases")
+        export_data["obs"] = obs_to_plot["Cases"].values
+
+    pickle_dump(
+        export_data, open(join(workdir, filename.replace(".png", ".pickle")), "wb")
+    )
 
     downsample_factor = max(1, len(ref_data.index) // 10)
 
