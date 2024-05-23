@@ -12,10 +12,10 @@ from process.vis.wrapper import plot_wrapper
 # base_dir = "/tmp/epimodel_esr/Auckland/ens_{run_id}"
 # base_dir = "/tmp/epimodel_esr_v3.0/Counties_Manukau/ens_{run_id}/"
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Counties Manukau"])
-base_dir = "/tmp/epimodel_esr_v7.0/2019/Counties_Manukau"
+base_dir = "/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/results/2019/Northland"
 obs = read_obs(
     "/home/zhangs/Github/EpiModel_ESR/etc/test_data/measles_cases_2019.parquet",
-    ["Counties Manukau"],
+    ["Northland"],
     ref_year=2019,
 )
 # obs = read_obs("etc/test_data/measles_cases_2019.parquet", ["Hutt Valley"])
@@ -44,7 +44,7 @@ plot_wrapper(
     ylabel_str="Number of cases",
     title_str="Number of simulated and confirmed cases",
     filename=f"infection_all",
-    ylim_range=[0, 250],
+    # ylim_range=[0, 250],
 )
 
 logger.info("Jobs done ...")

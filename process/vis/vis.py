@@ -27,7 +27,7 @@ from pandas import DataFrame
 
 from process import VIS_COLOR
 from process.model.disease import State
-from process.utils import daily2weekly_data
+from process.utils import create_dir, daily2weekly_data
 
 
 def plot_infectiousness_profile(
@@ -167,8 +167,13 @@ def plot_data(
         bar(obs_to_plot.index, obs_to_plot["Cases"], width=5.0, label="confirmed cases")
         export_data["obs"] = obs_to_plot["Cases"].values
 
+    export_data_dir = join(workdir, "data")
+
+    create_dir(export_data_dir)
+
     pickle_dump(
-        export_data, open(join(workdir, filename.replace(".png", ".pickle")), "wb")
+        export_data,
+        open(join(export_data_dir, filename.replace(".png", ".pickle")), "wb"),
     )
 
     downsample_factor = max(1, len(ref_data.index) // 10)

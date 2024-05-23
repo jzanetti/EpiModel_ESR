@@ -1,18 +1,18 @@
 #!/bin/bash
 
 
-create_model=false
-run_model=true
+create_model=true
+run_model=false
 
-workdir=/tmp/epimodel_esr_v7.0/2022
-cfg_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg
+workdir=/DSC/digital_twin/abm/PHA_report_202405/data/2019
+cfg_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg/2019
 # data_dir=/home/zhangs/Github/EpiModel_ESR/etc/test_data
 # data_dir=/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/data/2019
 
 num_models=10
 # region_names=("Counties_Manukau" "Auckland" "Canterbury" "Capital_and_Coast")
-# region_names=("Northland")
-region_names=("Counties_Manukau")
+region_names=("Northland")
+# region_names=("Counties_Manukau")
 
 source activate epimodel_esr
 
