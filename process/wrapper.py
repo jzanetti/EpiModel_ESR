@@ -8,7 +8,13 @@ from pandas import read_parquet as pandas_read_parquet
 
 from process import ENS_NUMBER, SAVED_MODEL_PATH, TOTAL_TIMESTEPS
 from process.model.wrapper import Epimodel_esr
-from process.utils import open_saved_model, read_cfg, read_obs, read_syspop_data
+from process.utils import (
+    create_dir,
+    open_saved_model,
+    read_cfg,
+    read_obs,
+    read_syspop_data,
+)
 from process.vis.wrapper import plot_wrapper
 
 logger = getLogger()
@@ -25,8 +31,7 @@ def create_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     cfg = read_cfg(cfg_path, task_name="create_model")
 
     model_dir = join(workdir, "models")
-    if not exists(model_dir):
-        makedirs(model_dir)
+    create_dir(model_dir)
 
     saved_model_path = SAVED_MODEL_PATH.format(workdir=model_dir, id=model_id)
 

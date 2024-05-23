@@ -1,5 +1,6 @@
 from datetime import datetime
 from logging import INFO, Formatter, StreamHandler, basicConfig, getLogger
+from os import makedirs
 from os.path import exists, join
 from pickle import dump as pickle_dump
 from pickle import load as pickle_load
@@ -20,6 +21,19 @@ from yaml import safe_load as yaml_safe_load
 from process import DIARY_TYPES, SA2_DATA_PATH, TOTAL_TIMESTEPS
 
 logger = getLogger()
+
+
+def create_dir(dir_name: str):
+    """Create an directory if not exists
+
+    Args:
+        dir_name (str): _description_
+    """
+    try:
+        if not exists(dir_name):
+            makedirs(dir_name)
+    except FileExistsError:
+        pass
 
 
 def weekly2daily_data(weekly_data: DataFrame, target_var: str = "Cases") -> DataFrame:
