@@ -47,10 +47,10 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/tmp/epimodel_esr_v8.0/2023/Northland",
+            "/DSC/digital_twin/abm/PHA_report_202405/data/2019/Counties_Manukau",
             "--cfg",
             # "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
-            "etc/PHA_report/cfg/cfg.Northland.yml",
+            "etc/PHA_report/cfg/2019/cfg.Counties_Manukau.yml",
             "--create_model",
             "--run_model",
             "--run_vis",

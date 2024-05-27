@@ -68,6 +68,8 @@ def plot_data(
     plot_weekly_data: bool,
     plot_percentile_flag: bool,
     ylim_range: list or None,
+    remove_outlier: bool = False,
+    outlier_percentile: int = 95,
 ):
     """Plot individual state data
 
@@ -99,6 +101,7 @@ def plot_data(
 
         output[state].append(proc_grouped_data)
 
+    data_percentiles_outlier = None
     if plot_percentile_flag:
         output_transpose = array(list(zip(*output[state]))).transpose()
 
@@ -125,7 +128,17 @@ def plot_data(
             except TypeError:
                 export_data["percentile"][percentile_key] = data_percentiles[i, :]
 
+        if remove_outlier:
+            data_percentiles_outlier = percentile(
+                output_transpose, outlier_percentile, axis=0
+            )
+
     for i, proc_grouped_data in enumerate(output[state]):
+
+        if data_percentiles_outlier is not None:
+            if proc_grouped_data.sum() > data_percentiles_outlier.sum():
+                continue
+
         if i == 0:
             plot(
                 proc_grouped_data,
