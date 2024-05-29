@@ -1,7 +1,5 @@
 import warnings
 from argparse import ArgumentParser
-from os import makedirs
-from os.path import exists
 
 from process.args import obtain_args
 from process.utils import create_dir, setup_logging
