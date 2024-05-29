@@ -3,3 +3,4 @@ etc/PHA_report
 *.parquet
 *.pyc
 log
+run_test.py

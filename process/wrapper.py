@@ -99,6 +99,7 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
 
     Args:
         workdir (str): Working directory
+        cfg_path (str): Configuration path
         model_id (str): Model ID
     """
     cfg = read_cfg(cfg_path, task_name="run_vis")
