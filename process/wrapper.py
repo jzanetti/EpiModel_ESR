@@ -1,9 +1,11 @@
 from copy import deepcopy
 from datetime import datetime
+from glob import glob
 from logging import getLogger
 from os import makedirs
 from os.path import exists, join
 
+from pandas import read_parquet
 from pandas import read_parquet as pandas_read_parquet
 
 from process import ENS_NUMBER, SAVED_MODEL_PATH, TOTAL_TIMESTEPS
@@ -131,4 +133,47 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
         filename=f"infection_{model_id}",
     )
 
-    logger.info("Visualization finished")
+    logger.info("Visualization (Single) finished")
+
+
+def run_ens_wrapper(workdir: str, cfg_path: str):
+    """Plot ens data, e.g., percentile etc.
+
+    Args:
+        workdir (str): Working directory
+        cfg_path (str): Configuration path
+    """
+    cfg = read_cfg(cfg_path, task_name="run_vis")
+
+    obs_path = cfg["data_path"]["obs"]
+    dhb_list = cfg["dhb_list"]
+
+    proc_data_list = []
+    all_files = glob(join(workdir, "output", "output_model_*.parquet"))
+    total_files = len(all_files)
+
+    logger.info("Reading ens ...")
+    for i, proc_file in enumerate(all_files):
+        logger.info(f"{i}/{total_files} ...")
+        proc_data = read_parquet(proc_file)
+        proc_data_list.append(proc_data)
+
+    if obs_path is not None:
+        obs = read_obs(obs_path, dhb_list, ref_year=2019)
+
+    logger.info("Plotting ens ...")
+    plot_wrapper(
+        join(workdir, "vis"),
+        proc_data_list,
+        plot_weekly_data=True,
+        plot_percentile_flag=True,
+        obs=obs,
+        xlabel_str="Date",
+        ylabel_str="Number of cases",
+        title_str="Number of simulated and confirmed cases",
+        filename=f"infection_all",
+        remove_outlier=False,
+        # ylim_range=[0, 250],
+    )
+
+    logger.info("Visualization (Ens) finished")

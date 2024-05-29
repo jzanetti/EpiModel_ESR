@@ -5,7 +5,12 @@ from os.path import exists
 
 from process.args import obtain_args
 from process.utils import create_dir, setup_logging
-from process.wrapper import create_model_wrapper, run_model_wrapper, run_vis_wrapper
+from process.wrapper import (
+    create_model_wrapper,
+    run_ens_wrapper,
+    run_model_wrapper,
+    run_vis_wrapper,
+)
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -21,6 +26,7 @@ def main(
     create_model_flag: bool,
     run_model_flag: bool,
     run_vis_flag: bool,
+    run_ens_flag: bool,
 ):
 
     create_dir(workdir)
@@ -34,6 +40,9 @@ def main(
 
     if run_vis_flag:
         run_vis_wrapper(workdir, cfg_path, model_id)
+
+    if run_ens_flag:
+        run_ens_wrapper(workdir, cfg_path)
 
 
 if __name__ == "__main__":
@@ -67,4 +76,7 @@ if __name__ == "__main__":
         args.create_model,
         args.run_model,
         args.run_vis,
+        args.run_ens,
     )
+
+    logger.info("All job done !")

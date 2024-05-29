@@ -21,7 +21,7 @@ def obtain_args(parser):
     parser.add_argument(
         "--model_id",
         type=str,
-        required=True,
+        required=False,
         help="Model ID",
     )
 
@@ -41,6 +41,12 @@ def obtain_args(parser):
         "--run_vis",
         action="store_true",
         help="Run simulation visualization",
+    )
+
+    parser.add_argument(
+        "--run_ens",
+        action="store_true",
+        help="Run ens visualization",
     )
 
     return parser
