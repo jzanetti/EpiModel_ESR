@@ -4,3 +4,4 @@ etc/PHA_report
 *.pyc
 log
 run_test.py
+run_job_sensitivity.bash
