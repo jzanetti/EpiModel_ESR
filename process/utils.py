@@ -18,7 +18,7 @@ from pandas import read_parquet as pandas_read_parquet
 from pandas import to_datetime, to_numeric
 from yaml import safe_load as yaml_safe_load
 
-from process import DIARY_TYPES, SA2_DATA_PATH, TOTAL_TIMESTEPS
+from process import DIARY_TYPES, SA2_DATA_PATH, SAVED_MODEL_PATH
 
 logger = getLogger()
 
@@ -280,3 +280,27 @@ def read_cfg(cfg_path: str, task_name: str) -> dict:
         proc_cfg = cfg["run_model"]
         proc_cfg["measures"] = cfg["measures"]
         return proc_cfg
+
+
+def get_model_path(workdir: str, model_id: str) -> str:
+    """Getting model path
+
+    Args:
+        model_path (str): Model path
+
+    Returns:
+        str: _description_
+    """
+    model_path = SAVED_MODEL_PATH.format(workdir=join(workdir, "models"), id=model_id)
+
+    if exists(model_path):
+        return model_path
+
+    model_path = SAVED_MODEL_PATH.format(
+        workdir=join(workdir, "..", "models"), id=model_id
+    )
+
+    if exists(model_path):
+        return model_path
+
+    raise Exception("Not able to find any models")

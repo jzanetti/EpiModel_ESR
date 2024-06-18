@@ -9,3 +9,6 @@ run_job:
 
 kill_job:
 	pkill -9 -f "cli/run_model.py"
+
+run_sensitivity_job:
+	nohup python etc/submit/others/run_job_sensitivity.py >& run_job_sensitivity.log &

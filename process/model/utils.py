@@ -84,7 +84,7 @@ def vaccination_adjustment(
 
         population_imms = obtain_average_imms(person_agents, proc_vac_cfg, target_ratio)
 
-        if proc_vac_cfg[target_ratio]["operator"] == "fix":
+        if proc_vac_cfg[target_ratio]["operator"] == "at":
             ratio_change = target_ratio - population_imms["imms_ratio"]
         elif proc_vac_cfg[target_ratio]["operator"] == "by":
             ratio_change = (
@@ -129,8 +129,11 @@ def get_steps(intital_timestep: datetime, target_time: list) -> dict or int:
     """
 
     if isinstance(target_time, str):
-        target_time = datetime.strptime(target_time, "%Y%m%d")
-        return (target_time - intital_timestep).days
+        if target_time.startswith("["):
+            target_time = eval(target_time)
+        else:
+            target_time = datetime.strptime(target_time, "%Y%m%d")
+            return (target_time - intital_timestep).days
 
     target_time_start = datetime.strptime(str(target_time[0]), "%Y%m%d")
     target_time_end = datetime.strptime(str(target_time[1]), "%Y%m%d")

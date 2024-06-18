@@ -12,6 +12,7 @@ from process import ENS_NUMBER, SAVED_MODEL_PATH, TOTAL_TIMESTEPS
 from process.model.wrapper import Epimodel_esr
 from process.utils import (
     create_dir,
+    get_model_path,
     open_saved_model,
     read_cfg,
     read_obs,
@@ -65,9 +66,7 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     seed_infection = cfg["seed_infection"]
     intital_timestep = datetime.strptime(str(cfg["intital_timestep"]), "%Y%m%d")
 
-    model = open_saved_model(
-        SAVED_MODEL_PATH.format(workdir=join(workdir, "models"), id=model_id)
-    )
+    model = open_saved_model(get_model_path(workdir, model_id))
 
     output_dir = join(workdir, "output")
     if not exists(output_dir):
