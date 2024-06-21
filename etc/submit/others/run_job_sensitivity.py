@@ -17,16 +17,14 @@ WORKDIR = "/DSC/digital_twin/abm/PHA_report_202405/sensitivity/data/2023"
 CFGDIR = "/home/zhangs/Github/EpiModel_ESR/etc/PHA_report/cfg/sensitivity_runs"
 SCRIPTDIR = "/home/zhangs/Github/EpiModel_ESR"
 
-MODELS_NUM = 10  # Each model contains different scenarios of social dynamics
-EXPS_NUM = 47  # each exp contains different model (sensitivity) configurations
+MODELS_NUM = 10  # Each model contains different scenarios of social dynamics, 10
+EXPS_NUM = 0  # each exp contains different model (sensitivity) configurations, 47
 
-# Central: kscprod-data3(started)
-# Te_Manawa_Taki: kscprod-data1 (started)
-REGION_NAMES = ["Te_Manawa_Taki"]
+REGION_NAMES = ["Northern"]
 
-CREATE_MODEL = False  # DO NOT SWITCH THIS ON UNLESS NECESSARY
-RUN_MODEL = True
-CONCURRENT_JOBS = 30
+CREATE_MODEL = True  # DO NOT SWITCH THIS ON UNLESS NECESSARY
+RUN_MODEL = False
+CONCURRENT_JOBS = 10
 
 
 # Function to run the model creation or execution
