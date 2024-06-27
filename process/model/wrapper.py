@@ -9,6 +9,7 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
+from numpy import int8
 from pandas import DataFrame
 from pandas import to_timedelta as pandas_to_timedelta
 
@@ -186,5 +187,13 @@ class Epimodel_esr(Model):
             decoded_output["Step"] = intital_timestep + pandas_to_timedelta(
                 decoded_output["Step"], unit="D"
             )
+
+        all_states = list(all_agents["State"].unique())
+        all_states.remove(0)
+        for proc_state in all_states:
+            decoded_output[f"State_new_{proc_state}"] = decoded_output[
+                f"State_new_{proc_state}"
+            ].astype(int8)
+        decoded_output["State"] = decoded_output["State"].astype(int8)
 
         self.output = decoded_output
