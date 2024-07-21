@@ -18,7 +18,7 @@ REGIONS = ["Te_Manawa_Taki"]
 EXP_IDS = {"start": 0, "end": 14, "exclude": [1, 2, 3, 4, 5, 7, 8, 9, 10, 11]}
 SCRIPTDIR = "/home/zhangs/Github/EpiModel_ESR"
 
-CONCURRENT_JOBS = 10
+CONCURRENT_JOBS = 3
 
 
 # Function to run the model creation or execution
@@ -26,9 +26,8 @@ def run_model(region_name, exp_id):
 
     logger.info(f"Running iteration (create_model) {region_name}, {exp_id}")
     command = (
-        f"source activate epimodel_esr "
-        + f"&& export PYTHONPATH={SCRIPTDIR}"
-        + f"&& python /home/zhangs/Github/EpiModel_ESR/etc/scripts/run_ens.py --base_dir {BASEDIR}/{region_name}/exp_{exp_id}"
+        f"export PYTHONPATH={SCRIPTDIR} "
+        + f"&& ~/miniconda3/envs/epimodel_esr/bin/python /home/zhangs/Github/EpiModel_ESR/etc/scripts/run_ens.py --base_dir {BASEDIR}/{region_name}/exp_{exp_id}"
     )
     logger.info(command)
     result = subprocess.run(

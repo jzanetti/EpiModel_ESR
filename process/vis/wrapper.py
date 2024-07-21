@@ -20,9 +20,12 @@ def plot_wrapper(
     plot_percentile_flag: bool = False,
     plot_weekly_data: bool = True,
     plot_cfg: dict = {"linewidth": 0.2, "linestyle": "-"},
-    state_list: list = [1, 2],
+    state_list: list = [2],
     ylim_range: list or None = None,
     remove_outlier: bool = False,
+    model_ids: None = None,
+    only_group_data: bool = False,
+    use_dask: bool = False,
 ):
     """Plot timeseries such as infection and its comparisons with obs
 
@@ -47,7 +50,7 @@ def plot_wrapper(
     if agents is not None:
         plot_infectiousness_profile(workdir, agents)
 
-    all_grouped = data_transformer(data_to_plot, plot_increment, state_list)
+    all_grouped = data_transformer(data_to_plot, plot_increment, state_list, use_dask)
 
     filename_suffix = "daily"
     if plot_weekly_data:
@@ -68,4 +71,6 @@ def plot_wrapper(
             plot_percentile_flag,
             ylim_range,
             remove_outlier,
+            model_ids=model_ids,
+            only_group_data=only_group_data,
         )

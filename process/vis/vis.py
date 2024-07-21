@@ -70,6 +70,8 @@ def plot_data(
     ylim_range: list or None,
     remove_outlier: bool = False,
     outlier_percentile: int = 95,
+    model_ids: None = None,
+    only_group_data: bool = False,
 ):
     """Plot individual state data
 
@@ -184,9 +186,13 @@ def plot_data(
 
     create_dir(export_data_dir)
 
+    filename_base = filename.split(".")[0]
+    if model_ids is not None:
+        filename_base = f"{filename_base}_models_{'_'.join(model_ids)}"
+
     pickle_dump(
         export_data,
-        open(join(export_data_dir, filename.replace(".png", ".pickle")), "wb"),
+        open(join(export_data_dir, f"{filename_base}.pickle"), "wb"),
     )
 
     downsample_factor = max(1, len(ref_data.index) // 10)
@@ -207,5 +213,5 @@ def plot_data(
     title(title_str)
     legend()
     tight_layout()
-    savefig(join(workdir, filename))
+    savefig(join(workdir, f"{filename_base}.png"))
     close()

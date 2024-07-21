@@ -20,7 +20,7 @@ SCRIPTDIR = "/home/zhangs/Github/EpiModel_ESR"
 MODELS_NUM = 10  # Each model contains different scenarios of social dynamics, 10
 EXPS_NUM = 0  # each exp contains different model (sensitivity) configurations, 47
 
-REGION_NAMES = ["Northern"]
+REGION_NAMES = ["Waitemata"]
 
 CREATE_MODEL = True  # DO NOT SWITCH THIS ON UNLESS NECESSARY
 RUN_MODEL = False

@@ -1,8 +1,12 @@
+from logging import getLogger
+
 from pandas import DataFrame
+
+logger = getLogger()
 
 
 def data_transformer(
-    data_to_process: DataFrame, plot_increment: bool, state_list: list
+    data_to_process: DataFrame, plot_increment: bool, state_list: list, use_dask: bool
 ):
     """Convert MESA output from accumulated state to newly produced state
 
@@ -22,6 +26,7 @@ def data_transformer(
             state_key = f"State_new_{state}"
 
         if isinstance(data_to_process, DataFrame):
+            logger.info(f"Grouping ...")
             proc_data_to_plot = (
                 data_to_process.groupby(["Step", state_key])
                 .size()
@@ -33,12 +38,18 @@ def data_transformer(
             grouped = [proc_data_to_plot]
         else:
             grouped = []
-            for proc_data_to_plot in data_to_process:
-                proc_data_to_plot = (
-                    proc_data_to_plot.groupby(["Step", state_key])
-                    .size()
-                    .unstack(fill_value=0)
-                )
+            total_jobs = len(data_to_process)
+            for i, proc_data_to_plot in enumerate(data_to_process):
+
+                logger.info(f"Grouping {i} / {total_jobs} ...")
+
+                proc_data_to_plot = proc_data_to_plot.groupby(
+                    ["Step", state_key]
+                ).size()
+                if use_dask:
+                    proc_data_to_plot = proc_data_to_plot.compute()
+                proc_data_to_plot = proc_data_to_plot.unstack(fill_value=0)
+
                 proc_data_to_plot.columns.name = None
                 proc_data_to_plot = proc_data_to_plot[[1]]
                 proc_data_to_plot = proc_data_to_plot.rename(columns={1: state})
