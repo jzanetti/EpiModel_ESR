@@ -18,7 +18,7 @@ DIARY_TYPES = [
 
 # https://bpac.org.nz/2021/mmr.aspx
 CLINICAL_PARAMS = {
-    "reproduction_rate": 12.0,
+    "reproduction_rate": 1.3,
     "infection_to_incubation_days": {"start": 0, "end": 10},
     "infection_to_infectiousness_days": {"start": 10, "end": 21},
     "infection_to_symptom_days": {"start": 11, "end": 20},
@@ -26,14 +26,16 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
-ENS_NUMBER = 10
+ENS_NUMBER = 1
 
 INFECTED_NO_REPORT_RATIO = 0.0
 
 # MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
 
-TOTAL_TIMESTEPS = 180
+TOTAL_TIMESTEPS = 60
 
 VIS_COLOR = {0: "red", 1: "green", 2: "grey"}
 
 DEBUG_FLAG = True
+
+RANDOM_SEED = 123

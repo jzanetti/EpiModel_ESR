@@ -46,6 +46,7 @@ def create_model_wrapper(workdir: str, cfg_path: str, model_id: str):
         cfg["data_path"]["obs"],
         sample_p=cfg["sample_ratio"],
         dhb_list=cfg["dhb_list"],
+        sa2_list=cfg["sa2_list"],
         sample_all_hhd_flag=True,
     )
     model = Epimodel_esr(data)
@@ -64,6 +65,7 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     cfg = read_cfg(cfg_path, task_name="run_model")
 
     seed_infection = cfg["seed_infection"]
+    seed_infection_cfg = cfg["seed_infection_cfg"]
     intital_timestep = datetime.strptime(str(cfg["intital_timestep"]), "%Y%m%d")
 
     model = open_saved_model(get_model_path(workdir, model_id))
@@ -80,7 +82,7 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
 
         logger.info(f"Create initial infector ...")
         proc_model.initial_infection(
-            seed_infection, intital_timestep, cleanup_agents=True
+            seed_infection, seed_infection_cfg, intital_timestep, cleanup_agents=True
         )
 
         logger.info(f"Update measures ...")
@@ -123,6 +125,8 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
 
     if obs_path is not None:
         obs = read_obs(obs_path, dhb_list, ref_year=2019)
+    else:
+        obs = None
 
     vis_dir = join(workdir, "vis")
 

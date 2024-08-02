@@ -183,6 +183,7 @@ def read_syspop_data(
     syspop_healthcare_path: str,
     obs_path: str or None,
     dhb_list: list or None = None,
+    sa2_list: list or None = None,
     sample_p: float or None = 0.01,
     sample_all_hhd_flag: bool = True,
 ) -> DataFrame:
@@ -218,18 +219,27 @@ def read_syspop_data(
     )
 
     if dhb_list is not None:
-        selected_sa2 = get_sa2_from_dhb(dhb_list)
+        selected_sa2_1 = get_sa2_from_dhb(dhb_list)
+    else:
+        selected_sa2_1 = list(syspop_base["area"].unique())
 
-        syspop_base = syspop_base[syspop_base["area"].isin(selected_sa2)].reset_index()[
-            ["id", "area", "age", "gender", "ethnicity"]
-        ]
-        syspop_diary = syspop_diary[
-            syspop_diary["id"].isin(syspop_base.id)
-        ].reset_index()[["id", "type", "location"]]
+    if sa2_list is not None:
+        selected_sa2_2 = sa2_list
+    else:
+        selected_sa2_2 = list(syspop_base["area"].unique())
 
-        syspop_healthcare = syspop_healthcare[
-            syspop_healthcare["id"].isin(syspop_base.id)
-        ].reset_index()[["id", "mmr"]]
+    selected_sa2 = list(set(selected_sa2_1) & set(selected_sa2_2))
+
+    syspop_base = syspop_base[syspop_base["area"].isin(selected_sa2)].reset_index()[
+        ["id", "area", "age", "gender", "ethnicity"]
+    ]
+    syspop_diary = syspop_diary[syspop_diary["id"].isin(syspop_base.id)].reset_index()[
+        ["id", "type", "location"]
+    ]
+
+    syspop_healthcare = syspop_healthcare[
+        syspop_healthcare["id"].isin(syspop_base.id)
+    ].reset_index()[["id", "mmr"]]
 
     if sample_p is not None:
         # sample_size = int(sample_p * len(syspop_diary))

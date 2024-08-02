@@ -1,0 +1,42 @@
+
+create_model:
+  sample_ratio: 1.0
+  data_path:
+    syspop_base: /DSC/digital_twin/abm/PHA_report_202405/syspop/NZ/2023/median/syspop_base.parquet
+    syspop_diary: /DSC/digital_twin/abm/PHA_report_202405/syspop/NZ/2023/median/syspop_diaries.parquet
+    syspop_address: /DSC/digital_twin/abm/PHA_report_202405/syspop/NZ/2023/median/syspop_location.parquet
+    syspop_healthcare: /DSC/digital_twin/abm/PHA_report_202405/syspop/NZ/2023/median/syspop_healthcare.parquet
+    obs: null # etc/test_data/measles_cases_2019.parquet
+  dhb_list:
+    - Hutt Valley
+  sa2_list:
+    - 241800
+    - 242800
+
+run_model:
+  seed_infection:
+    - 50: [20190701, 20190701]
+  seed_infection_cfg:
+    age:
+      min: 7
+      max: 12
+    ethnicity: null
+  intital_timestep: 20190701
+
+measures:
+  vaccine:
+    - 0.3:
+        enable: true
+        operator: at # at or by
+        ethnicity:
+          - Maori
+          - Asian
+          - Pacific
+          - European
+          - MELAA
+        age:
+          - 0-999
+        time: 20191001
+  stay_at_home_if_symptom:
+    enable: true
+    percentage: 0.75

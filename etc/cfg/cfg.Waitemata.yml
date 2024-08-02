@@ -9,11 +9,15 @@ create_model:
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
     - Waitemata
+  sa2_list: null
 
 run_model:
   seed_infection:
     - 20: [20190615, 20190715]
     - 30: [20190630, 20190830]
+  seed_infection_cfg:
+    age: null
+    ethnicity: null
   intital_timestep: 20190501
 
 measures:

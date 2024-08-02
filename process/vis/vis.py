@@ -2,6 +2,7 @@ from os.path import join
 from pickle import dump as pickle_dump
 from random import sample as random_sample
 
+import matplotlib.dates as mdates
 from matplotlib.cm import ScalarMappable, viridis
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from matplotlib.pyplot import (
@@ -23,7 +24,7 @@ from matplotlib.pyplot import (
 )
 from mesa.agent import AgentSet as mesa_agentset
 from numpy import arange, array, linspace, percentile
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 
 from process import VIS_COLOR
 from process.model.disease import State
@@ -214,4 +215,39 @@ def plot_data(
     legend()
     tight_layout()
     savefig(join(workdir, f"{filename_base}.png"))
+    close()
+
+
+def plot_infection_src(
+    workdir: str,
+    filename: str,
+    data_to_plot: DataFrame or list,
+    state: int,
+    x_axis_interval: int = 3,
+):
+    if len(data_to_plot) > 1:
+        raise Exception("Not implemented")
+
+    data_to_plot = data_to_plot[0]
+    proc_data = data_to_plot[data_to_plot[f"{State(state).name.lower()}_flag"] == 1]
+
+    all_ts = list(proc_data["step"].unique())[1:]
+
+    all_data_ts = {}
+    for proc_t in all_ts:
+        proc_data_ts = list(proc_data[proc_data["step"] == proc_t]["location"].values)
+        proc_data_ts = {i: proc_data_ts.count(i) for i in proc_data_ts}
+        all_data_ts[proc_t] = proc_data_ts
+
+    # Convert the dictionary to a DataFrame
+    df = DataFrame(all_data_ts).T
+
+    _, ax = subplots()
+    df.plot(kind="bar", stacked=True, ax=ax)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_axis_interval))
+    savefig(
+        join(workdir, filename),
+        bbox_inches="tight",
+    )
     close()

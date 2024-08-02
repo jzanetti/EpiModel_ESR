@@ -9,11 +9,15 @@ create_model:
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
     - Counties Manukau
+  sa2_list: null
 
 run_model:
   seed_infection:
     - 50: [20190615, 20190730]
     - 60: [20190715, 20190831]
+  seed_infection_cfg:
+    age: null
+    ethnicity: null
   intital_timestep: 20190601
 
 measures:

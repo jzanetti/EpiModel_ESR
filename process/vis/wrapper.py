@@ -3,8 +3,9 @@ from os.path import exists
 
 from pandas import DataFrame
 
+from process.model import State
 from process.vis.utils import data_transformer
-from process.vis.vis import plot_data, plot_infectiousness_profile
+from process.vis.vis import plot_data, plot_infection_src, plot_infectiousness_profile
 
 
 def plot_wrapper(
@@ -26,6 +27,9 @@ def plot_wrapper(
     model_ids: None = None,
     only_group_data: bool = False,
     use_dask: bool = False,
+    plot_ts: bool = True,
+    plot_infectious_profile: bool = True,
+    plot_src: bool = True,
 ):
     """Plot timeseries such as infection and its comparisons with obs
 
@@ -47,30 +51,41 @@ def plot_wrapper(
     if not exists(workdir):
         makedirs(workdir)
 
-    if agents is not None:
+    if plot_src:
+        plot_infection_src(
+            workdir,
+            f"{filename}_state{State.INFECTED.value}_src.png",
+            data_to_plot,
+            State.INFECTED.value,
+        )
+
+    if plot_infectious_profile and agents is not None:
         plot_infectiousness_profile(workdir, agents)
 
-    all_grouped = data_transformer(data_to_plot, plot_increment, state_list, use_dask)
-
-    filename_suffix = "daily"
-    if plot_weekly_data:
-        filename_suffix = "weekly"
-
-    for proc_state in state_list:
-        plot_data(
-            workdir,
-            f"{filename}_state{proc_state}_{filename_suffix}.png",
-            all_grouped[proc_state],
-            proc_state,
-            obs,
-            plot_cfg,
-            xlabel_str,
-            ylabel_str,
-            title_str,
-            plot_weekly_data,
-            plot_percentile_flag,
-            ylim_range,
-            remove_outlier,
-            model_ids=model_ids,
-            only_group_data=only_group_data,
+    if plot_ts:
+        all_grouped = data_transformer(
+            data_to_plot, plot_increment, state_list, use_dask
         )
+
+        filename_suffix = "daily"
+        if plot_weekly_data:
+            filename_suffix = "weekly"
+
+        for proc_state in state_list:
+            plot_data(
+                workdir,
+                f"{filename}_state{proc_state}_{filename_suffix}.png",
+                all_grouped[proc_state],
+                proc_state,
+                obs,
+                plot_cfg,
+                xlabel_str,
+                ylabel_str,
+                title_str,
+                plot_weekly_data,
+                plot_percentile_flag,
+                ylim_range,
+                remove_outlier,
+                model_ids=model_ids,
+                only_group_data=only_group_data,
+            )

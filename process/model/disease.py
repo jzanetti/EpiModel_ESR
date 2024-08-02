@@ -37,6 +37,7 @@ class Agents(Agent):
         model,
         pos,
         loc_type,
+        loc_type_value,
         imms_status,
         days_buffer: float = 0.15,
     ):
@@ -48,6 +49,7 @@ class Agents(Agent):
         self.gender = person_attr["gender"]
         self.pos = pos
         self.loc_type = loc_type
+        self.loc_type_value = loc_type_value
         self.state = State.SUSCEPTIBLE
         if imms_status == "nature_imms":
             self.vaccine_status = Vaccine.NATURE
@@ -63,6 +65,8 @@ class Agents(Agent):
             "partial"
         ]
         self.infection_time = None
+        self.infection_src_type = None
+        self.infection_src_venue = None
         self.symptomatic_time = None
         self.recovery_time = None
         days_buffer = random_uniform(0.0, days_buffer)
@@ -186,6 +190,7 @@ class Agents(Agent):
                             neighbor.state = State.INFECTED
                         neighbor.infection_time = self.model.timestep
                         infected_neighbors.append(neighbor)
+
                     elif neighbor.vaccine_status in [Vaccine.FULL, Vaccine.PARTIAL]:
 
                         if neighbor.vaccine_status == Vaccine.FULL:
@@ -216,7 +221,12 @@ class Agents(Agent):
                     elif neighbor.vaccine_status == Vaccine.NATURE:
                         continue
 
-            if len(infected_neighbors) > 0 and DEBUG_FLAG:
-                logger.info(
-                    f"    * {self.loc_type}: newly infected person: {len(infected_neighbors)}"
-                )
+            if len(infected_neighbors) > 0:
+                for infected_neighbor in infected_neighbors:
+                    infected_neighbor.infection_src_type = self.loc_type
+                    infected_neighbor.infection_src_venue = self.loc_type_value
+
+                if DEBUG_FLAG:
+                    logger.info(
+                        f"    * {self.loc_type}/{self.loc_type_value}: newly infected person: {len(infected_neighbors)}"
+                    )

@@ -2,12 +2,13 @@ from datetime import datetime
 from random import sample as random_sample
 from random import uniform as random_uniform
 
+from numpy import int8
 from numpy import linspace as numpy_linspace
 from pandas import DataFrame
 from scipy.stats import gamma as scipy_gamma
 
 from process import CLINICAL_PARAMS, TOTAL_TIMESTEPS
-from process.model import Vaccine
+from process.model import State, Vaccine
 
 
 def obtain_average_imms(
@@ -109,7 +110,7 @@ def vaccination_adjustment(
             people_ids = random_sample(
                 population_imms["vac_status"]["full"]
                 + population_imms["vac_status"]["partial"],
-                int(population_imms["total"] * ratio_change),
+                int(population_imms["total"] * (1.0 + ratio_change)),
             )
             for proc_people_id in people_ids:
                 person_agents[proc_people_id].vaccine_status = Vaccine.NO
@@ -167,7 +168,7 @@ def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataF
             proc_state_name = f"State_new_{target_state}"
             newly_infected = all_cases[
                 (all_cases["Step"] == ts) & (all_cases["State"] == target_state)
-            ][["Step", "AgentID", "State"]]
+            ][["Step", "AgentID", "State", "infection_src_type", "infection_src_venue"]]
             newly_infected = newly_infected[
                 ~newly_infected["AgentID"].isin(newly_infected_ids)
             ]
@@ -182,6 +183,47 @@ def create_newly_increased_case(all_cases: DataFrame, state_list: list) -> DataF
         all_cases[f"State_new_{target_state}"][
             all_cases[f"State_new_{target_state}"] != 0
         ] = 1
+
+    all_cases.loc[
+        all_cases["State"] != State.INFECTED.value,
+        ["infection_src_type", "infection_src_venue"],
+    ] = None
+
+    # all_cases["AgentID"] = all_cases["AgentID"].apply(
+    #    lambda x: x if "_" in x else x + "_"
+    # )
+
+    # Now perform the split operation
+    all_cases[["id", "location"]] = all_cases["AgentID"].str.split(
+        "_", n=1, expand=True
+    )
+
+    all_cases = all_cases.rename(
+        columns={
+            "Step": "step",
+            "State": "state",
+            "State_new_2": f"{State(2).name.lower()}_flag",
+            "State_new_3": f"{State(3).name.lower()}_flag",
+            "infection_src_venue": "infection_location",
+        }
+    )
+    all_cases = all_cases[
+        [
+            "step",
+            "id",
+            "location",
+            "infection_location",
+            f"{State(2).name.lower()}_flag",
+            f"{State(3).name.lower()}_flag",
+            "state",
+        ]
+    ]
+
+    for proc_state in state_list:
+        all_cases[f"{State(proc_state).name.lower()}_flag"] = all_cases[
+            f"{State(proc_state).name.lower()}_flag"
+        ].astype(int8)
+    all_cases["state"] = all_cases["state"].astype(int8)
 
     return all_cases
 
@@ -205,22 +247,23 @@ def calculate_disease_days(days: int, buffer: float):
 def cal_reproduction_weight(
     reproduction_rate: float = CLINICAL_PARAMS["reproduction_rate"],
     contact_weight: dict = {
-        "school": 0.3,
+        "school": 0.9,
         "household": 1.0,
         "outdoor": 0.01,
         "park": 0.01,
-        "company": 0.5,
+        "company": 0.7,
         "gym": 0.5,
-        "kindergarten": 0.3,
-        "supermarket": 0.1,
+        "kindergarten": 0.9,
+        "supermarket": 0.15,
         "others": None,
         "fast_food": 0.15,
         "wholesale": 0.1,
         "department_store": 0.1,
-        "restaurant": 0.3,
+        "restaurant": 0.15,
         "pub": 0.3,
-        "cafe": 0.3,
+        "cafe": 0.1,
     },
+    scaler_factor: float = 10.0,
     use_fixed_weight: bool = True,
 ):
     """Create the reproduction weight for different social settings
@@ -243,10 +286,17 @@ def cal_reproduction_weight(
     """
     reproduction_weight = {}
     if use_fixed_weight:
+        d = {k: (v if v is not None else 0) for k, v in contact_weight.items()}
+        normalized_contact_weight = {k: v / max(d.values()) for k, v in d.items()}
+
         for contact_key in contact_weight:
             reproduction_weight[contact_key] = None
             if contact_weight[contact_key] is not None:
-                reproduction_weight[contact_key] = reproduction_rate
+                reproduction_weight[contact_key] = (
+                    reproduction_rate
+                    * normalized_contact_weight[contact_key]
+                    * scaler_factor
+                )
         return reproduction_weight
 
     total_sum = 0
@@ -278,3 +328,34 @@ def cal_infectiousness_profile(
         infectiousness_profile[int(proc_t)] = y[i]
 
     return infectiousness_profile
+
+
+def filter_initial_agents(person_agents, initial_infection_cfg: dict) -> list:
+    """Filter initial agents based on age and ethnicity
+
+    Args:
+        person_agents (_type_): _description_
+        initial_infection_cfg (dict): _description_
+
+    Returns:
+        list: _description_
+    """
+    selected_agents = []
+
+    for proc_agent in person_agents:
+        age_cfg = initial_infection_cfg["age"]
+        ethnicity_cfg = initial_infection_cfg["ethnicity"]
+
+        if age_cfg is not None:
+            if not (
+                proc_agent.age > age_cfg["min"] and proc_agent.age < age_cfg["max"]
+            ):
+                continue
+
+        if ethnicity_cfg is not None:
+            if proc_agent.ethnicity not in ethnicity_cfg:
+                continue
+
+        selected_agents.append(proc_agent)
+
+    return selected_agents

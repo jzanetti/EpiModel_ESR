@@ -1,6 +1,6 @@
 
 create_model:
-  sample_ratio: 0.15
+  sample_ratio: 0.001
   data_path:
     syspop_base: etc/test_data/Auckland/syspop_base.parquet
     syspop_diary: etc/test_data/Auckland/syspop_diaries.parquet
@@ -9,11 +9,17 @@ create_model:
     obs: etc/test_data/measles_cases_2019.parquet
   dhb_list:
     - Auckland
+  sa2_list:
+    - 241800
+    - 242800
 
 run_model:
   seed_infection:
     - 5: [20190701, 20190715]
     - 20: [20190801, 20190830]
+  seed_infection_cfg:
+    age: null
+    ethnicity: null
   intital_timestep: 20190701
 
 measures:
