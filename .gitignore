@@ -7,6 +7,7 @@ run_test.py
 run_job_sensitivity.bash
 *.png
 *.pkl
+etc/submit/slurm
 etc/submit/slurm/data_downsizer/slurm_jobs/cmdlist.txt
 etc/submit/slurm/data_downsizer/slurm_jobs/jobarray.sl
 etc/submit/slurm/data_downsizer/slurm_jobs2/cmdlist.txt
