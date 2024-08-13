@@ -26,7 +26,7 @@ run_model:
 
 measures:
   vaccine:
-    - 0.7:
+    - 0.5:
         enable: true
         operator: at # at or by
         ethnicity:

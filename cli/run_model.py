@@ -54,7 +54,7 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/DSC/digital_twin/abm/DT_demo/v2.0",
+            "/DSC/digital_twin/abm/DT_demo/v2.1",
             "--cfg",
             # "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
             "etc/cfg/cfg.Hutt_Valley.yml",

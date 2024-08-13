@@ -5,7 +5,12 @@ from pandas import DataFrame
 
 from process.model import State
 from process.vis.utils import data_transformer
-from process.vis.vis import plot_data, plot_infection_src, plot_infectiousness_profile
+from process.vis.vis import (
+    plot_data,
+    plot_infection_src,
+    plot_infectiousness_profile,
+    plot_spread_map,
+)
 
 
 def plot_wrapper(
@@ -14,6 +19,7 @@ def plot_wrapper(
     plot_increment: bool = True,
     obs: None or DataFrame = None,
     agents: None or DataFrame = None,
+    spread_dataset: None or DataFrame = None,
     filename: str = "test",
     xlabel_str: str = "Step",
     ylabel_str: str = "Total State",
@@ -50,6 +56,9 @@ def plot_wrapper(
 
     if not exists(workdir):
         makedirs(workdir)
+
+    if spread_dataset is not None:
+        plot_spread_map(workdir, spread_dataset, data_to_plot[0])
 
     if plot_src:
         plot_infection_src(

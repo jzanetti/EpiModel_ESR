@@ -1,7 +1,11 @@
-from os.path import join
+from logging import getLogger
+from os import makedirs
+from os.path import exists, join
 from pickle import dump as pickle_dump
 from random import sample as random_sample
 
+import cartopy.crs as ccrs
+import cartopy.io.img_tiles as cimgt
 import matplotlib.dates as mdates
 from matplotlib.cm import ScalarMappable, viridis
 from matplotlib.colors import BoundaryNorm, ListedColormap
@@ -29,6 +33,9 @@ from pandas import DataFrame, to_datetime
 from process import VIS_COLOR
 from process.model.disease import State
 from process.utils import create_dir, daily2weekly_data
+from process.vis.utils import convert_png_to_gif, data_transformer_spread
+
+logger = getLogger()
 
 
 def plot_infectiousness_profile(
@@ -251,3 +258,57 @@ def plot_infection_src(
         bbox_inches="tight",
     )
     close()
+
+
+def plot_spread_map(
+    workdir: str, spread_dataset: DataFrame, data_to_plot_for_spread: DataFrame
+):
+    """Plot spread map
+
+    Args:
+        workdir (str): _description_
+        spread_dataset (DataFrame): _description_
+        data_to_plot_for_spread (DataFrame): _description_
+    """
+    spread_data_to_plot = data_transformer_spread(
+        spread_dataset, data_to_plot_for_spread
+    )
+    request = cimgt.GoogleTiles(cache=True)  # spoofed, downloaded street map
+    # Create a new figure for each time step
+    workdir_tmp = join(workdir, "tmp")
+    if not exists(workdir_tmp):
+        makedirs(workdir_tmp)
+    png_files = []
+    for i, proc_time in enumerate(spread_data_to_plot["time"].unique()):
+        # Filter the DataFrame for the current time step
+        df_time = spread_data_to_plot[spread_data_to_plot["time"] <= proc_time]
+
+        # Create a new figure with cartopy projection
+        _, ax = subplots(figsize=(10, 10), subplot_kw=dict(projection=request.crs))
+        ax.set_extent(
+            [
+                spread_data_to_plot["longitude"].min() - 0.01,
+                spread_data_to_plot["longitude"].max() + 0.01,
+                spread_data_to_plot["latitude"].min() - 0.01,
+                spread_data_to_plot["latitude"].max() + 0.01,
+            ]
+        )
+        ax.add_image(request, 12)
+        ax.set_title(f"Infection locations: {proc_time}")
+
+        # Plot each (lat, lon) pair on the map as a dot
+        ax.scatter(
+            list(df_time["longitude"]),
+            list(df_time["latitude"]),
+            color="red",
+            s=100,
+            alpha=0.3,
+            transform=ccrs.PlateCarree(),
+        )
+
+        proc_filepath = join(workdir_tmp, f"test_{i}.png")
+        savefig(proc_filepath, bbox_inches="tight")
+        close()
+        png_files.append(proc_filepath)
+
+    convert_png_to_gif(png_files, join(workdir, f"spread_map.gif"), 200)

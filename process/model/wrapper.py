@@ -1,6 +1,5 @@
 from datetime import datetime
 from logging import getLogger
-from os.path import exists
 from random import randint as random_randint
 from random import sample as random_sample
 from random import seed as random_seed
@@ -10,12 +9,11 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
-from numpy import int8
 from pandas import DataFrame
 from pandas import to_timedelta as pandas_to_timedelta
 
 from process import RANDOM_SEED
-from process.model import State, Vaccine
+from process.model import State
 from process.model.disease import Agents
 from process.model.utils import (
     cal_reproduction_weight,
@@ -179,7 +177,6 @@ class Epimodel_esr(Model):
                 random_seed(RANDOM_SEED + i)
 
             proc_sampled_agents = random_sample(selected_agents, initial_n)
-            # proc_sampled_agents = random_sample(person_agents, initial_n)
             proc_infection_time = proc_infection[initial_n]
 
             for agent in proc_sampled_agents:

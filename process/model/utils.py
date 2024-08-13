@@ -1,5 +1,6 @@
 from datetime import datetime
 from random import sample as random_sample
+from random import seed as random_seed
 from random import uniform as random_uniform
 
 from numpy import int8
@@ -7,7 +8,7 @@ from numpy import linspace as numpy_linspace
 from pandas import DataFrame
 from scipy.stats import gamma as scipy_gamma
 
-from process import CLINICAL_PARAMS, TOTAL_TIMESTEPS
+from process import CLINICAL_PARAMS, RANDOM_SEED, TOTAL_TIMESTEPS
 from process.model import State, Vaccine
 
 
@@ -93,8 +94,12 @@ def vaccination_adjustment(
                 - population_imms["imms_ratio"]
             )
 
+        if RANDOM_SEED is not None:
+            random_seed(RANDOM_SEED)
+
         if ratio_change > 0:  # we need to improve imms
             imms_time = proc_vac_cfg[target_ratio]["time"]
+
             people_ids = random_sample(
                 population_imms["vac_status"]["no"],
                 int(population_imms["total"] * ratio_change),
@@ -107,6 +112,7 @@ def vaccination_adjustment(
                     )
 
         if ratio_change < 0:  # we need to remove imms
+
             people_ids = random_sample(
                 population_imms["vac_status"]["full"]
                 + population_imms["vac_status"]["partial"],
@@ -248,6 +254,9 @@ def calculate_disease_days(days: int, buffer: float):
             "end": round(days["end"] * (1 + buffer)),
         }
     else:
+        if RANDOM_SEED is not None:
+            random_seed(RANDOM_SEED)
+
         return random_uniform(days * (1 - buffer), days * (1 + buffer))
 
 

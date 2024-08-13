@@ -45,4 +45,4 @@ VIS_COLOR = {0: "red", 1: "green", 2: "grey"}
 
 DEBUG_FLAG = True
 
-RANDOM_SEED = 123
+RANDOM_SEED = None

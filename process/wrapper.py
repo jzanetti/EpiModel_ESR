@@ -102,7 +102,9 @@ def run_model_wrapper(workdir: str, cfg_path: str, model_id: str):
     logger.info("Simulation finished")
 
 
-def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
+def run_vis_wrapper(
+    workdir: str, cfg_path: str, model_id: str, plot_spread: bool = True
+):
     """Run model visualization
 
     Args:
@@ -123,6 +125,12 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
         )
         all_model_outputs.append(proc_model)
 
+    spread_dataset = None
+    if plot_spread:
+        df_address = pandas_read_parquet(cfg["data_path"]["syspop_address"])
+        df_diary = pandas_read_parquet(cfg["data_path"]["syspop_diary"])
+        spread_dataset = {"address": df_address, "diary": df_diary}
+
     if obs_path is not None:
         obs = read_obs(obs_path, dhb_list, ref_year=2019)
     else:
@@ -137,6 +145,7 @@ def run_vis_wrapper(workdir: str, cfg_path: str, model_id: str):
         vis_dir,
         all_model_outputs,
         plot_weekly_data=True,
+        spread_dataset=spread_dataset,
         obs=obs,
         filename=f"infection_{model_id}",
     )

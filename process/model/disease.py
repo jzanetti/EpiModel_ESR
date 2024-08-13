@@ -1,6 +1,6 @@
-from enum import IntEnum
 from logging import getLogger
 from random import sample as random_sample
+from random import seed as random_seed
 from random import uniform as random_uniform
 
 from mesa import Agent
@@ -10,6 +10,7 @@ from process import (
     CLINICAL_PARAMS,
     DEBUG_FLAG,
     INFECTED_NO_REPORT_RATIO,
+    RANDOM_SEED,
     SET_REMOVED_PERCENTAGE,
 )
 from process.model import State, Vaccine
@@ -58,6 +59,9 @@ class Agents(Agent):
         self.infection_src_venue = None
         self.symptomatic_time = None
         self.recovery_time = None
+        if RANDOM_SEED is not None:
+            random_seed(RANDOM_SEED)
+
         days_buffer = random_uniform(0.0, days_buffer)
 
         for days_type in [
@@ -134,6 +138,9 @@ class Agents(Agent):
                     delta_t > self.infection_to_symptom_days["start"]
                     or delta_t < self.infection_to_symptom_days["end"]
                 ):
+                    if RANDOM_SEED is not None:
+                        random_seed(RANDOM_SEED)
+
                     if numpy_choice(
                         [True, False],
                         p=[
@@ -166,6 +173,9 @@ class Agents(Agent):
             # --------------------------------------------
             # Step 6: Infecting people if they are not vaccinated
             # ---------------------------------------------
+            if RANDOM_SEED is not None:
+                random_seed(RANDOM_SEED)
+
             neighbors = random_sample(
                 all_neighbors, min([len(all_neighbors), int(infectiousness_value)])
             )
@@ -182,6 +192,9 @@ class Agents(Agent):
                     removed_ratio = SET_REMOVED_PERCENTAGE[self.loc_type]
                 except KeyError:
                     removed_ratio = SET_REMOVED_PERCENTAGE["default"]
+
+                if RANDOM_SEED is not None:
+                    random_seed(RANDOM_SEED)
 
                 if numpy_choice(
                     [True, False],
@@ -203,6 +216,9 @@ class Agents(Agent):
                         and neighbor.imms_timestep > self.model.timestep
                     ):
 
+                        if RANDOM_SEED is not None:
+                            random_seed(RANDOM_SEED)
+
                         if numpy_choice(
                             [True, False],
                             p=[
@@ -223,6 +239,9 @@ class Agents(Agent):
                         else:
                             proc_vaccine_efficiency = self.vaccine_efficiency_partial
 
+                        if RANDOM_SEED is not None:
+                            random_seed(RANDOM_SEED)
+
                         if numpy_choice(
                             [True, False],
                             p=[
@@ -230,6 +249,9 @@ class Agents(Agent):
                                 proc_vaccine_efficiency,
                             ],
                         ):
+
+                            if RANDOM_SEED is not None:
+                                random_seed(RANDOM_SEED)
 
                             if numpy_choice(
                                 [True, False],
