@@ -110,10 +110,17 @@ def vaccination_adjustment(
             people_ids = random_sample(
                 population_imms["vac_status"]["full"]
                 + population_imms["vac_status"]["partial"],
-                int(population_imms["total"] * (1.0 + ratio_change)),
+                int(
+                    (
+                        len(population_imms["vac_status"]["full"])
+                        + len(population_imms["vac_status"]["partial"])
+                    )
+                    * abs(ratio_change)
+                ),
             )
             for proc_people_id in people_ids:
                 person_agents[proc_people_id].vaccine_status = Vaccine.NO
+                person_agents[proc_people_id].imms_timestep = None
 
     return person_agents
 
@@ -345,6 +352,7 @@ def filter_initial_agents(person_agents, initial_infection_cfg: dict) -> list:
     for proc_agent in person_agents:
         age_cfg = initial_infection_cfg["age"]
         ethnicity_cfg = initial_infection_cfg["ethnicity"]
+        venue_cfg = initial_infection_cfg["venue"]
 
         if age_cfg is not None:
             if not (
@@ -356,6 +364,19 @@ def filter_initial_agents(person_agents, initial_infection_cfg: dict) -> list:
             if proc_agent.ethnicity not in ethnicity_cfg:
                 continue
 
+        if venue_cfg is not None:
+            if proc_agent.loc_type_value not in venue_cfg:
+                continue
+
         selected_agents.append(proc_agent)
 
     return selected_agents
+
+
+"""
+all_agents_id = []
+for proc_agent in person_agents:
+
+    if proc_agent.unique_id.startswith("144096"):
+        print(proc_agent.unique_id)
+"""

@@ -26,13 +26,20 @@ CLINICAL_PARAMS = {
     "vaccine_efficiency": {"full": 0.99, "partial": 0.93},
 }
 
+# the higher the value, the more agents will be set to MISSED (so the virus will transmitted slower)
+SET_REMOVED_PERCENTAGE = {
+    "default": 0.75,
+    "school": 0.5,
+    "household": 0.1,
+}
+
 ENS_NUMBER = 1
 
 INFECTED_NO_REPORT_RATIO = 0.0
 
 # MEASURES = {"stay_at_home_if_symptom": {"enable": True, "percentage": 0.7}}
 
-TOTAL_TIMESTEPS = 60
+TOTAL_TIMESTEPS = 120
 
 VIS_COLOR = {0: "red", 1: "green", 2: "grey"}
 

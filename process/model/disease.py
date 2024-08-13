@@ -6,27 +6,16 @@ from random import uniform as random_uniform
 from mesa import Agent
 from numpy.random import choice as numpy_choice
 
-from process import CLINICAL_PARAMS, DEBUG_FLAG, INFECTED_NO_REPORT_RATIO
+from process import (
+    CLINICAL_PARAMS,
+    DEBUG_FLAG,
+    INFECTED_NO_REPORT_RATIO,
+    SET_REMOVED_PERCENTAGE,
+)
 from process.model import State, Vaccine
 from process.model.utils import cal_infectiousness_profile, calculate_disease_days
 
 logger = getLogger()
-
-"""
-class State(IntEnum):
-    SUSCEPTIBLE = 0
-    SEED_INFECTION = 1
-    INFECTED = 2
-    RECOVERED = 3
-    INFECTED_NO_REPORT = 4
-
-
-class Vaccine(IntEnum):
-    NATURE = 3
-    FULL = 2
-    PARTIAL = 1
-    NO = 0
-"""
 
 
 class Agents(Agent):
@@ -92,6 +81,16 @@ class Agents(Agent):
             beta=0.5,
         )
 
+    def infected_the_same_agents(self, cur_diary_id):
+        for proc_agent in self.model.agents:
+            if (
+                proc_agent.unique_id.startswith(cur_diary_id.split("_")[0])
+                and proc_agent.unique_id != cur_diary_id
+            ):
+                if proc_agent.state == State.SUSCEPTIBLE:
+                    proc_agent.state = State.INFECTED
+                    proc_agent.infection_time = self.model.timestep
+
     def step(self):
 
         if self.state == State.SEED_INFECTION:
@@ -103,6 +102,11 @@ class Agents(Agent):
         if self.state in [State.INFECTED, State.INFECTED_NO_REPORT]:
 
             delta_t = self.model.timestep - self.infection_time
+
+            # --------------------------------------------
+            # Step 0: Infected the same agent but in a different place
+            # ---------------------------------------------
+            self.infected_the_same_agents(self.unique_id)
 
             # --------------------------------------------
             # Step 1: Check if the agent is recovered
@@ -155,22 +159,43 @@ class Agents(Agent):
             # --------------------------------------------
             # Step 5: Getting all possible neighbors
             # ---------------------------------------------
-            neighbors = self.model.grid.get_neighbors(
+            all_neighbors = self.model.grid.get_neighbors(
                 self.pos, 0.0, include_center=True
-            )
-            neighbors = random_sample(
-                neighbors, min([len(neighbors), int(infectiousness_value)])
             )
 
             # --------------------------------------------
-            # Step 5: Infecting people if they are not vaccinated
+            # Step 6: Infecting people if they are not vaccinated
             # ---------------------------------------------
+            neighbors = random_sample(
+                all_neighbors, min([len(all_neighbors), int(infectiousness_value)])
+            )
             infected_neighbors = []
             for neighbor in neighbors:
 
                 if neighbor.unique_id == self.unique_id:
                     continue
 
+                # --------------------------------------------
+                # Step 6.1: Remove some neigbors permanently
+                # ---------------------------------------------
+                try:
+                    removed_ratio = SET_REMOVED_PERCENTAGE[self.loc_type]
+                except KeyError:
+                    removed_ratio = SET_REMOVED_PERCENTAGE["default"]
+
+                if numpy_choice(
+                    [True, False],
+                    p=[
+                        removed_ratio,
+                        1.0 - removed_ratio,
+                    ],
+                ):
+                    neighbor.state = State.REMOVED
+                    continue
+
+                # --------------------------------------------
+                # Step 6.2: Infecting neighbors
+                # ---------------------------------------------
                 if neighbor.state == State.SUSCEPTIBLE:
 
                     if neighbor.vaccine_status == Vaccine.NO or (
@@ -216,8 +241,10 @@ class Agents(Agent):
                                 neighbor.state = State.INFECTED_NO_REPORT
                             else:
                                 neighbor.state = State.INFECTED
+
                             neighbor.infection_time = self.model.timestep
                             infected_neighbors.append(neighbor)
+
                     elif neighbor.vaccine_status == Vaccine.NATURE:
                         continue
 

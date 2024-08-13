@@ -14,3 +14,4 @@ class State(IntEnum):
     INFECTED = 2
     RECOVERED = 3
     INFECTED_NO_REPORT = 4
+    REMOVED = 5

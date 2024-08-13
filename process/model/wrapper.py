@@ -204,7 +204,7 @@ class Epimodel_esr(Model):
         all_agents = self.datacollector.get_agent_vars_dataframe()
         decoded_output = create_newly_increased_case(
             all_agents,
-            list(all_agents["State"].unique()),
+            [State.INFECTED.value, State.RECOVERED.value],
         )
         if intital_timestep is not None:
             # decoded_output["Step"] = pandas_to_datetime(

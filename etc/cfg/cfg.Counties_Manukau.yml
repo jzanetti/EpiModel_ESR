@@ -18,6 +18,7 @@ run_model:
   seed_infection_cfg:
     age: null
     ethnicity: null
+    venue: null
   intital_timestep: 20190601
 
 measures:
