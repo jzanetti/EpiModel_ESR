@@ -26,7 +26,7 @@ run_model:
 
 measures:
   vaccine:
-    - 0.5:
+    - 0.75:
         enable: true
         operator: at # at or by
         ethnicity:
@@ -39,5 +39,5 @@ measures:
           - 0-999
         time: 20190701
   stay_at_home_if_symptom:
-    enable: false
+    enable: true
     percentage: 0.75

@@ -37,7 +37,7 @@ def main(
         run_model_wrapper(workdir, cfg_path, model_id)
 
     if run_vis_flag:
-        run_vis_wrapper(workdir, cfg_path, model_id)
+        run_vis_wrapper(workdir, cfg_path, model_id, plot_spread=True)
 
     if run_ens_flag:
         run_ens_wrapper(workdir, cfg_path)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/DSC/digital_twin/abm/DT_demo/v2.1",
+            "/DSC/digital_twin/abm/DT_demo/v2.1/scenario2",
             "--cfg",
             # "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
             "etc/cfg/cfg.Hutt_Valley.yml",
