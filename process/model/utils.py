@@ -84,7 +84,7 @@ def vaccination_adjustment(
 
         population_imms = obtain_average_imms(person_agents, proc_vac_cfg, target_ratio)
 
-        if proc_vac_cfg[target_ratio]["operator"] == "at":
+        if proc_vac_cfg[target_ratio]["operator"] == "fix":
             ratio_change = target_ratio - population_imms["imms_ratio"]
         elif proc_vac_cfg[target_ratio]["operator"] == "by":
             ratio_change = (

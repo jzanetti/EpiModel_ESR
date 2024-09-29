@@ -1,0 +1,32 @@
+
+create_model:
+  sample_ratio: 0.001
+  data_path:
+    syspop_base: etc/test_data/Auckland/syspop_base.parquet
+    syspop_diary: etc/test_data/Auckland/syspop_diaries.parquet
+    syspop_address: etc/test_data/Auckland/syspop_location.parquet
+    syspop_healthcare: etc/test_data/Auckland/syspop_healthcare.parquet
+    obs: etc/test_data/measles_cases_2019.parquet
+  dhb_list:
+    - Counties Manukau
+
+run_model:
+  seed_infection:
+    - 50: [20190615, 20190730]
+    - 60: [20190715, 20190831]
+  intital_timestep: 20190601
+
+measures:
+  vaccine:
+    - 0.98:
+        enable: true
+        operator: fix # fix or by
+        ethnicity:
+          - Maori
+          - Asian
+        age:
+          - 0-28
+        time: 20191001
+  stay_at_home_if_symptom:
+    enable: true
+    percentage: 0.75

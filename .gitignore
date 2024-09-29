@@ -21,3 +21,4 @@ etc/submit/slurm/postprocessing/arrayjob_ens.sl
 etc/submit/slurm/postprocessing/slurm_commands_ens.list
 etc/submit/slurm/postprocessing/slurm_jobs/cmdlist.txt
 etc/submit/slurm/postprocessing/slurm_jobs/jobarray.sl
+!etc/dhb_and_sa2.parquet

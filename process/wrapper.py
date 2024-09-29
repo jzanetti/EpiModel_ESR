@@ -45,8 +45,7 @@ def create_model_wrapper(workdir: str, cfg_path: str, model_id: str):
         cfg["data_path"]["syspop_healthcare"],
         cfg["data_path"]["obs"],
         sample_p=cfg["sample_ratio"],
-        dhb_list=cfg["dhb_list"],
-        sample_all_hhd_flag=True,
+        dhb_list=cfg["dhb_list"]
     )
     model = Epimodel_esr(data)
     model.save(saved_model_path)

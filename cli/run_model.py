@@ -54,10 +54,11 @@ if __name__ == "__main__":
     args = parser.parse_args(
         [
             "--workdir",
-            "/DSC/digital_twin/abm/PHA_report_202405/data/2023/Counties_Manukau",
+            "/tmp/test_epimodel",
+            #"/DSC/digital_twin/abm/PHA_report_202405/data/2023/Counties_Manukau",
             "--cfg",
             # "etc/PHA_report/cfg/cfg.Counties_Manukau.yml",
-            "etc/PHA_report/cfg/2023/cfg.Counties_Manukau.yml",
+            "etc/cfg/cfg.test.yml",
             "--create_model",
             "--run_model",
             "--run_vis",
@@ -66,6 +67,7 @@ if __name__ == "__main__":
         ]
     )
     """
+
 
     main(
         args.workdir,

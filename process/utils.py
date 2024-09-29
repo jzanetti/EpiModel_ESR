@@ -18,7 +18,7 @@ from pandas import read_parquet as pandas_read_parquet
 from pandas import to_datetime, to_numeric
 from yaml import safe_load as yaml_safe_load
 
-from process import DIARY_TYPES, SA2_DATA_PATH, SAVED_MODEL_PATH
+from process import DIARY_TYPES, SA2_DATA_PATH, SAVED_MODEL_PATH, SAMPLE_ALL_HHD_FLAG
 
 logger = getLogger()
 
@@ -183,8 +183,7 @@ def read_syspop_data(
     syspop_healthcare_path: str,
     obs_path: str or None,
     dhb_list: list or None = None,
-    sample_p: float or None = 0.01,
-    sample_all_hhd_flag: bool = True,
+    sample_p: float or None = 0.01
 ) -> DataFrame:
     """Read required input synthetic population data
 
@@ -235,7 +234,7 @@ def read_syspop_data(
         # sample_size = int(sample_p * len(syspop_diary))
         # logger.info(f"Selected {sample_size} samples ...")
         # syspop_diary = syspop_diary.sample(sample_size, random_state=sample_seed)
-        if sample_all_hhd_flag:
+        if SAMPLE_ALL_HHD_FLAG:
             syspop_diary = sample_syspop_diary_with_all_household(
                 syspop_diary, sample_p
             )

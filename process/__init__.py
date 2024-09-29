@@ -37,3 +37,6 @@ TOTAL_TIMESTEPS = 180
 VIS_COLOR = {0: "red", 1: "green", 2: "grey"}
 
 DEBUG_FLAG = True
+
+SAMPLE_ALL_HHD_FLAG = False # when creating the model, whether we sample all households regardless of sample_ratio
+
